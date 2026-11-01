@@ -1,663 +1,796 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>прыгающий мяч · хардкор</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-    body {
-      background: radial-gradient(circle at 30% 20%, #1a1e2c, #070911);
-      min-height: 100vh;
-      display: flex; justify-content: center; align-items: center;
-      font-family: 'Segoe UI', system-ui, monospace;
-      padding: 10px;
-    }
-    .game-container {
-      background: #0b0d17;
-      padding: 18px;
-      border-radius: 32px;
-      box-shadow: 0 25px 40px rgba(0,0,0,0.8), inset 0 0 20px #2a2f45;
-    }
-    canvas {
-      display: block; margin: 0 auto;
-      border-radius: 24px;
-      background: linear-gradient(160deg, #0f1422, #181f33);
-      box-shadow: inset 0 0 40px #00000099, 0 10px 25px #000000cc;
-      cursor: pointer;
-      touch-action: none;
-      max-width: 100%;
-    }
-    canvas:active { filter: brightness(0.94); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON BALL — Arcade</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
 
-    .status-panel {
-      display: flex; flex-wrap: wrap; gap: 10px;
-      justify-content: space-between; align-items: center;
-      margin-top: 14px;
-      padding: 0 6px;
-    }
-    .score {
-      background: #232a44;
-      padding: 8px 22px;
-      border-radius: 50px;
-      font-size: 1.4rem;
-      letter-spacing: 2px;
-      box-shadow: inset 0 -3px 0 #0f121f, 0 5px 10px black;
-      border: 1px solid #4d5a8a;
-      color: #b9e2ff;
-      font-weight: 700;
-      text-shadow: 0 0 8px #4b8cff;
-      min-width: 140px;
-      text-align: center;
-    }
-    .best {
-      color: #ffd966;
-      font-size: 1rem;
-      background: #1c2236;
-      border-radius: 30px;
-      padding: 6px 16px;
-      border: 1px solid #5e6b96;
-      letter-spacing: 1px;
-    }
-    .hint {
-      background: #1a1f30;
-      padding: 8px 18px;
-      border-radius: 40px;
-      font-size: 1rem;
-      border: 1px solid #3e4a6b;
-      color: #b0c4f0;
-      box-shadow: inset 0 -2px 0 #0b0e18, 0 4px 8px black;
-      white-space: nowrap;
-    }
-    button {
-      background: #313e64;
-      border: none; border-radius: 40px;
-      padding: 10px 24px;
-      font-size: 1.1rem; font-weight: bold;
-      color: #eef5ff;
-      box-shadow: inset 0 -4px 0 #141b2b, 0 8px 0 #080b12, 0 10px 20px black;
-      cursor: pointer; transition: all 0.07s ease;
-      letter-spacing: 1px;
-      border: 1px solid #5d71a8;
-    }
-    button:active {
-      transform: translateY(6px);
-      box-shadow: inset 0 -2px 0 #141b2b, 0 2px 0 #080b12, 0 5px 15px black;
-    }
-    @media (max-width: 860px) {
-      .hint { display: none; }
-      .score { font-size: 1.2rem; padding: 6px 14px; }
-    }
-  </style>
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  background:
+    radial-gradient(circle at 50% 10%, #202b50, #090b17 65%);
+  font-family: Segoe UI, sans-serif;
+  color: white;
+}
+
+.game {
+  width: min(900px, 100%);
+  padding: 20px;
+  background: #101528;
+  border: 1px solid #303e68;
+  border-radius: 25px;
+  box-shadow: 0 20px 70px #000b;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #74d9ff;
+  text-shadow: 0 0 15px #259cff;
+}
+
+.tag {
+  color: #8999c4;
+  font-size: 12px;
+}
+
+canvas {
+  width: 100%;
+  display: block;
+  border-radius: 17px;
+  background: #080e20;
+  border: 1px solid #293c67;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.panel {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.stat {
+  flex: 1;
+  min-width: 90px;
+  padding: 12px;
+  text-align: center;
+  background: #1b2542;
+  border: 1px solid #35466e;
+  border-radius: 13px;
+}
+
+.stat small {
+  display: block;
+  color: #8da0ce;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.stat strong {
+  font-size: 21px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+button, select {
+  padding: 12px 17px;
+  border-radius: 12px;
+  border: 1px solid #526da8;
+  background: #263b69;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #385795;
+}
+
+button:active {
+  transform: scale(.96);
+}
+
+select {
+  flex: 1;
+  min-width: 140px;
+}
+
+.primary {
+  background: #087fbb;
+  border-color: #49caff;
+  flex: 2;
+}
+
+.hint {
+  margin-top: 13px;
+  text-align: center;
+  color: #8091b9;
+  font-size: 12px;
+}
+
+@media(max-width: 500px) {
+  .game { padding: 12px; }
+  .logo { font-size: 19px; }
+  .stat { min-width: 75px; padding: 8px; }
+}
+</style>
 </head>
 <body>
-<div class="game-container">
-  <canvas id="gameCanvas" width="820" height="520"></canvas>
-  <div class="status-panel">
-    <div class="score">🏆 <span id="scoreDisplay">0</span></div>
-    <div class="best">⭐ рекорд: <span id="bestDisplay">0</span></div>
-    <button id="restartButton">🔄 заново</button>
+
+<div class="game">
+
+  <div class="header">
+    <div>
+      <div class="logo">NEON BALL</div>
+      <div class="tag">ARCADE SURVIVAL SYSTEM</div>
+    </div>
+    <div>⚡ <span id="difficultyName">NORMAL</span></div>
   </div>
+
+  <canvas id="canvas" width="820" height="480"></canvas>
+
+  <div class="panel">
+    <div class="stat">
+      <small>🏆 СЧЁТ</small>
+      <strong id="score">0</strong>
+    </div>
+    <div class="stat">
+      <small>⭐ РЕКОРД</small>
+      <strong id="best">0</strong>
+    </div>
+    <div class="stat">
+      <small>❤️ ЖИЗНИ</small>
+      <strong id="lives">3</strong>
+    </div>
+    <div class="stat">
+      <small>💎 КРИСТАЛЛЫ</small>
+      <strong id="gems">0</strong>
+    </div>
+  </div>
+
+  <div class="controls">
+    <select id="difficulty">
+      <option value="easy">🟢 Лёгкая</option>
+      <option value="normal" selected>🟡 Нормальная</option>
+      <option value="hard">🔴 Хардкор</option>
+    </select>
+
+    <button class="primary" id="start">▶ НАЧАТЬ</button>
+    <button id="pause">⏸ ПАУЗА</button>
+    <button id="restart">↻</button>
+  </div>
+
+  <div class="hint">
+    SPACE / ЗАЖАТЬ МЫШЬ / КАСАНИЕ — ПОДЪЁМ МЯЧА
+  </div>
+
 </div>
 
 <script>
-(function () {
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-  const scoreSpan = document.getElementById('scoreDisplay');
-  const bestSpan = document.getElementById('bestDisplay');
+(() => {
+"use strict";
 
-  const W = canvas.width;
-  const H = canvas.height;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-  // ============ НАСТРОЙКИ СЛОЖНОСТИ ============
-  const GRAVITY = 0.42;            // сильнее притягивает вниз — нужно чаще нажимать
-  const BOUNCE_DAMP = 0.86;        // хуже держит отскок от пола
-  const LIFT_ACCEL = 1.15;         // СЛАБЫЙ прыжок (было 2.4)
-  const MAX_UP_SPEED = 6.2;        // ограничение, чтобы не улетал
-  const BALL_RADIUS = 13;
-  const BALL_X = 130;
+const W = canvas.width;
+const H = canvas.height;
 
-  const FLOOR_Y = H - 10;
+const $ = id => document.getElementById(id);
+
+const settings = {
+  easy: {
+    name: "EASY",
+    gravity: .30,
+    lift: .85,
+    speed: 2.6,
+    gap: 155,
+    lives: 5
+  },
+  normal: {
+    name: "NORMAL",
+    gravity: .42,
+    lift: 1.15,
+    speed: 3.4,
+    gap: 125,
+    lives: 3
+  },
+  hard: {
+    name: "HARDCORE",
+    gravity: .53,
+    lift: 1.35,
+    speed: 4.4,
+    gap: 105,
+    lives: 1
+  }
+};
+
+let difficulty = "normal";
+let config = settings[difficulty];
+
+let ball;
+let obstacles = [];
+let gems = [];
+let particles = [];
+let stars = [];
+
+let score = 0;
+let best = 0;
+let collected = 0;
+let lives = 3;
+
+let running = false;
+let paused = false;
+let gameOver = false;
+let started = false;
+let pressing = false;
+
+let speed = 3.4;
+let spawnTimer = 0;
+let frame = 0;
+let shield = 0;
+
+const floorY = H - 12;
+
+function random(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function getBest() {
+  return Number(localStorage.getItem("neonBest_" + difficulty) || 0);
+}
+
+function saveBest() {
+  localStorage.setItem("neonBest_" + difficulty, best);
+}
+
+function updateUI() {
+  $("score").textContent = Math.floor(score);
+  $("best").textContent = best;
+  $("lives").textContent = lives;
+  $("gems").textContent = collected;
+  $("difficultyName").textContent = config.name;
+}
+
+function makeBall() {
+  return {
+    x: 140,
+    y: floorY - 15,
+    vy: 0,
+    r: 15,
+    squash: 1,
+    invincible: 0
+  };
+}
+
+function resetGame() {
+  config = settings[difficulty];
+
+  score = 0;
+  collected = 0;
+  lives = config.lives;
+
+  speed = config.speed;
+  obstacles = [];
+  gems = [];
+  particles = [];
+
+  spawnTimer = 0;
+  frame = 0;
+  shield = 0;
+
+  ball = makeBall();
+
+  running = false;
+  paused = false;
+  gameOver = false;
+  started = false;
+  pressing = false;
+
+  best = getBest();
+
+  $("pause").textContent = "⏸ ПАУЗА";
+
+  updateUI();
+  draw();
+}
+
+function startGame() {
+  if (gameOver) resetGame();
+
+  running = true;
+  started = true;
+  paused = false;
+}
+
+function createParticles(x, y, color, amount = 12) {
+  for (let i = 0; i < amount; i++) {
+    particles.push({
+      x, y,
+      vx: random(-4, 4),
+      vy: random(-4, 4),
+      life: 1,
+      color,
+      size: random(2, 5)
+    });
+  }
+}
+
+function spawnObstacle() {
+  const gap = Math.max(
+    82,
+    config.gap - Math.min(25, score / 35)
+  );
+
+  const center = random(110, H - 110);
+  const width = 21;
+  const topHeight = center - gap / 2;
+  const bottomY = center + gap / 2;
+
+  obstacles.push({
+    x: W + 20,
+    w: width,
+    top: topHeight,
+    bottom: bottomY,
+    passed: false
+  });
+
+  if (Math.random() < .65) {
+    gems.push({
+      x: W + 20 + width / 2,
+      y: center,
+      r: 9,
+      phase: random(0, 6)
+    });
+  }
+}
+
+function collisionCircleRect(cx, cy, r, rx, ry, rw, rh) {
+  const x = Math.max(rx, Math.min(cx, rx + rw));
+  const y = Math.max(ry, Math.min(cy, ry + rh));
+
+  return (cx - x) ** 2 + (cy - y) ** 2 < r * r;
+}
+
+function hit() {
+  if (ball.invincible > 0 || gameOver) return;
+
+  if (shield > 0) {
+    shield = 0;
+    ball.invincible = 75;
+    createParticles(ball.x, ball.y, "#4deeff", 25);
+    return;
+  }
+
+  lives--;
+  ball.invincible = 100;
+
+  createParticles(ball.x, ball.y, "#ff456b", 25);
+
+  if (lives <= 0) {
+    endGame();
+  } else {
+    ball.vy = -5;
+  }
+
+  updateUI();
+}
+
+function endGame() {
+  running = false;
+  gameOver = true;
+  pressing = false;
+
+  if (score > best) {
+    best = Math.floor(score);
+    saveBest();
+  }
+
+  updateUI();
+}
+
+function update() {
+  frame++;
+
+  if (!running || paused || gameOver) return;
+
+  score += .08;
+  speed = config.speed + Math.min(3, score / 180);
+
+  if (score > best) {
+    best = Math.floor(score);
+  }
+
+  // Мяч
+  ball.vy += config.gravity;
+
+  if (pressing) {
+    ball.vy -= config.lift;
+    ball.vy = Math.max(ball.vy, -7);
+  }
+
+  ball.y += ball.vy;
+
+  if (ball.y + ball.r > floorY) {
+    ball.y = floorY - ball.r;
+    ball.vy = -Math.abs(ball.vy) * .78;
+    ball.squash = .72;
+
+    if (Math.abs(ball.vy) < .7) ball.vy = 0;
+  }
+
+  if (ball.y - ball.r < 0) {
+    ball.y = ball.r;
+    ball.vy = Math.abs(ball.vy) * .4;
+  }
+
+  ball.squash += (1 - ball.squash) * .2;
+
+  if (ball.invincible > 0) ball.invincible--;
+  if (shield > 0) shield--;
 
   // Препятствия
-  const OBSTACLE_WIDTH = 16;
-  const MIN_GAP = 92;              // минимальный вертикальный зазор для мяча (диаметр + запас)
+  spawnTimer++;
 
-  let obstacles = [];
-  let particles = [];
+  const interval = Math.max(49, 95 - score / 12);
 
-  let baseSpeed = 3.4;
-  let currentSpeed = 3.4;
-  let spawnTimer = 0;
-  let spawnInterval = 78;
-
-  // ============ СОСТОЯНИЕ ============
-  let ball = {
-    x: BALL_X,
-    y: FLOOR_Y - BALL_RADIUS,
-    vy: 0,
-    radius: BALL_RADIUS,
-    squash: 1 // для анимации "сжатия"
-  };
-
-  let score = 0;
-  let best = parseFloat(localStorage.getItem('bounceBest') || '0');
-  let gameOver = false;
-  let gameStarted = true;
-  let keyPressed = false;
-  let mousePressed = false;
-
-  let frameCounter = 0;
-
-  // ============ УТИЛИТЫ ============
-  function updateScoreDisplay() {
-    scoreSpan.textContent = Math.floor(score);
-    bestSpan.textContent = Math.floor(best);
-  }
-
-  function rand(min, max) { return Math.random() * (max - min) + min; }
-
-  function resetGame() {
-    gameOver = false;
-    gameStarted = true;
-    score = 0;
-    currentSpeed = baseSpeed;
-    obstacles = [];
-    particles = [];
+  if (spawnTimer >= interval) {
+    spawnObstacle();
     spawnTimer = 0;
-    spawnInterval = 78;
-    ball.y = FLOOR_Y - ball.radius;
-    ball.vy = 0;
-    ball.squash = 1;
-    keyPressed = false;
-    mousePressed = false;
-    frameCounter = 0;
-    updateScoreDisplay();
   }
 
-  // ============ СПАВН ПРЕПЯТСТВИЙ ============
-  function spawnObstacle() {
-    // Усложнение: с шансом 45% спавним "комбо" — пару сверху+снизу с узким проходом
-    const difficulty = Math.min(1, score / 900); // 0..1 по мере игры
-    const comboChance = 0.35 + difficulty * 0.35;
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
 
-    if (Math.random() < comboChance) {
-      // Двойное препятствие: сверху и снизу, оставляем проход
-      const gap = MIN_GAP + rand(-8, 30) - difficulty * 18; // со временем проход уже
-      const safeGap = Math.max(72, gap);
-      const gapCenter = rand(safeGap / 2 + 30, H - safeGap / 2 - 30);
-      const topH = gapCenter - safeGap / 2;
-      const bottomH = H - (gapCenter + safeGap / 2);
+    o.x -= speed;
 
-      if (topH > 20) {
-        obstacles.push({ x: W, y: 0, w: OBSTACLE_WIDTH, h: topH, type: 'top', moveY: 0, baseY: 0, moveAmp: 0, moveSpeed: 0, phase: 0 });
-      }
-      if (bottomH > 20) {
-        obstacles.push({ x: W, y: H - bottomH, w: OBSTACLE_WIDTH, h: bottomH, type: 'bottom', moveY: 0, baseY: H - bottomH, moveAmp: 0, moveSpeed: 0, phase: 0 });
-      }
-    } else {
-      // Одиночное препятствие — сверху или снизу, иногда движущееся по вертикали
-      const isTop = Math.random() < 0.5;
-      const h = rand(50, 160);
-      const moving = Math.random() < (0.25 + difficulty * 0.25); // шанс движущегося
-
-      if (isTop) {
-        const obs = {
-          x: W, y: 0, w: OBSTACLE_WIDTH, h: h, type: 'top',
-          baseY: 0, moveY: 0, moveAmp: 0, moveSpeed: 0, phase: 0
-        };
-        if (moving) {
-          obs.moveAmp = rand(25, 70);
-          obs.moveSpeed = rand(0.02, 0.045);
-          obs.phase = rand(0, Math.PI * 2);
-        }
-        obstacles.push(obs);
-      } else {
-        const obs = {
-          x: W, y: H - h, w: OBSTACLE_WIDTH, h: h, type: 'bottom',
-          baseY: H - h, moveY: 0, moveAmp: 0, moveSpeed: 0, phase: 0
-        };
-        if (moving) {
-          obs.moveAmp = rand(25, 70);
-          obs.moveSpeed = rand(0.02, 0.045);
-          obs.phase = rand(0, Math.PI * 2);
-        }
-        obstacles.push(obs);
-      }
-    }
-  }
-
-  // ============ ОБНОВЛЕНИЕ ============
-  function updateBall() {
-    // гравитация
-    ball.vy += GRAVITY;
-
-    // слабый подъём при нажатии — импульс маленький
-    if ((keyPressed || mousePressed) && !gameOver) {
-      ball.vy -= LIFT_ACCEL;
-      // ограничение вверх
-      if (ball.vy < -MAX_UP_SPEED) ball.vy = -MAX_UP_SPEED;
+    if (!o.passed && o.x + o.w < ball.x) {
+      o.passed = true;
+      score += 5;
     }
 
-    ball.y += ball.vy;
-
-    // пол
-    const floor = FLOOR_Y - ball.radius;
-    if (ball.y > floor) {
-      ball.y = floor;
-      if (ball.vy > 0) {
-        ball.vy = -ball.vy * BOUNCE_DAMP;
-        ball.squash = 0.75; // визуальное сжатие
-      }
-      if (Math.abs(ball.vy) < 0.6) ball.vy = 0;
-    }
-
-    // потолок — мягкий отскок
-    if (ball.y - ball.radius < 0) {
-      ball.y = ball.radius;
-      ball.vy = Math.abs(ball.vy) * 0.4;
-      if (ball.vy < 0.3) ball.vy = 0.3;
-    }
-
-    // восстанавливаем squash
-    ball.squash += (1 - ball.squash) * 0.25;
-
-    ball.x = BALL_X;
-  }
-
-  function updateObstacles() {
-    // скорость растёт со временем / очками
-    currentSpeed = baseSpeed + Math.min(4.2, score / 220);
-
-    // интервал спавна уменьшается
-    const newInterval = Math.max(38, 78 - Math.floor(score / 30));
-    spawnInterval = newInterval;
-
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-      const o = obstacles[i];
-      o.x -= currentSpeed;
-
-      // движение по вертикали
-      if (o.moveAmp > 0) {
-        o.phase += o.moveSpeed;
-        const offset = Math.sin(o.phase) * o.moveAmp;
-        if (o.type === 'top') {
-          o.y = o.baseY + Math.max(0, offset); // не уходит в минус сильно
-          if (o.y < 0) o.y = 0;
-        } else {
-          o.y = o.baseY + Math.max(-o.moveAmp * 0.8, Math.min(offset, H - o.h - o.baseY + 10));
-          if (o.y + o.h > H) o.y = H - o.h;
-        }
-      }
-
-      if (o.x + o.w < -10) obstacles.splice(i, 1);
-    }
-
-    // спавн
-    if (!gameOver && gameStarted) {
-      spawnTimer++;
-      if (spawnTimer >= spawnInterval) {
-        spawnObstacle();
-        spawnTimer = 0;
-        // иногда сразу ещё одно для хардкора
-        if (score > 300 && Math.random() < 0.18) {
-          spawnObstacle();
-        }
-      }
-    }
-  }
-
-  // Проверка столкновения: мяч (круг) vs прямоугольник
-  function circleRectCollision(cx, cy, r, rx, ry, rw, rh) {
-    const closestX = Math.max(rx, Math.min(cx, rx + rw));
-    const closestY = Math.max(ry, Math.min(cy, ry + rh));
-    const dx = cx - closestX;
-    const dy = cy - closestY;
-    return (dx * dx + dy * dy) < r * r;
-  }
-
-  function checkCollisions() {
-    for (const o of obstacles) {
-      if (circleRectCollision(ball.x, ball.y, ball.radius, o.x, o.y, o.w, o.h)) {
-        if (!gameOver) {
-          // эффект частиц
-          for (let i = 0; i < 22; i++) {
-            particles.push({
-              x: ball.x, y: ball.y,
-              vx: rand(-4, 4), vy: rand(-5, 2),
-              life: 1, maxLife: rand(20, 40),
-              color: o.type === 'top' ? '#ff6b8a' : '#6ba8ff'
-            });
-          }
-        }
-        gameOver = true;
-        gameStarted = false;
-        // обновляем рекорд
-        if (score > best) {
-          best = score;
-          localStorage.setItem('bounceBest', String(best));
-        }
-        updateScoreDisplay();
-        return;
-      }
-    }
-  }
-
-  function updateParticles() {
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.18;
-      p.life -= 1 / p.maxLife;
-      if (p.life <= 0) particles.splice(i, 1);
-    }
-  }
-
-  function updateScore() {
-    if (!gameOver && gameStarted) {
-      score += 0.15;
-      if (score > best) {
-        best = score;
-        localStorage.setItem('bounceBest', String(best));
-      }
-      updateScoreDisplay();
-    }
-  }
-
-  // ============ РИСОВАНИЕ ============
-  function drawBackground() {
-    // сетка
-    ctx.strokeStyle = '#1f263b';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < W; x += 44) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, H);
-      ctx.stroke();
-    }
-    for (let y = 0; y < H; y += 44) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(W, y);
-      ctx.stroke();
-    }
-
-    // пол
-    ctx.shadowColor = '#5b7cff';
-    ctx.shadowBlur = 18;
-    const floorGrad = ctx.createLinearGradient(0, H - 14, 0, H);
-    floorGrad.addColorStop(0, '#3a4b7a');
-    floorGrad.addColorStop(1, '#0e1422');
-    ctx.fillStyle = floorGrad;
-    ctx.fillRect(0, H - 12, W, 12);
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
-
-    // линия "опасной" земли
-    ctx.beginPath();
-    ctx.strokeStyle = '#3f5a9e';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 8]);
-    ctx.moveTo(0, H - 12);
-    ctx.lineTo(W, H - 12);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  function drawObstacles() {
-    for (const o of obstacles) {
-      const isTop = o.type === 'top';
-      const grad = ctx.createLinearGradient(o.x, o.y, o.x + o.w, o.y + o.h);
-      if (isTop) {
-        grad.addColorStop(0, '#ff4f72');
-        grad.addColorStop(0.6, '#c0203f');
-        grad.addColorStop(1, '#6e0f24');
-      } else {
-        grad.addColorStop(0, '#3f8ef0');
-        grad.addColorStop(0.6, '#1f5fc0');
-        grad.addColorStop(1, '#0a2b5e');
-      }
-
-      ctx.shadowColor = isTop ? '#ff7a9a' : '#6ba8ff';
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.roundRect(o.x, o.y, o.w, o.h, 7);
-      ctx.fill();
-
-      // блик
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#ffffff28';
-      ctx.beginPath();
-      ctx.roundRect(o.x + 3, o.y + 5, o.w - 6, 7, 4);
-      ctx.fill();
-
-      // "шипы" для наглядности сверху/снизу
-      ctx.fillStyle = isTop ? '#ffb3c6' : '#b3d4ff';
-      ctx.beginPath();
-      if (isTop) {
-        ctx.arc(o.x + o.w / 2, o.y + o.h - 2, 4, 0, Math.PI * 2);
-      } else {
-        ctx.arc(o.x + o.w / 2, o.y + 2, 4, 0, Math.PI * 2);
-      }
-      ctx.fill();
-    }
-  }
-
-  function drawBall() {
-    const squash = ball.squash;
-    const rx = ball.radius * (2 - squash);
-    const ry = ball.radius * squash;
-
-    // свечение
-    ctx.shadowColor = '#87c0ff';
-    ctx.shadowBlur = 34;
-
-    const grad = ctx.createRadialGradient(
-      ball.x - 5, ball.y - 6, 2,
-      ball.x, ball.y, ball.radius + 8
+    const topHit = collisionCircleRect(
+      ball.x, ball.y, ball.r,
+      o.x, 0, o.w, o.top
     );
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.35, '#b6dcff');
-    grad.addColorStop(0.75, '#4f9eff');
-    grad.addColorStop(1, '#164a9e');
 
-    ctx.beginPath();
-    ctx.ellipse(ball.x, ball.y, rx, ry, 0, 0, Math.PI * 2);
-    ctx.fillStyle = grad;
-    ctx.fill();
+    const bottomHit = collisionCircleRect(
+      ball.x, ball.y, ball.r,
+      o.x, o.bottom, o.w, H - o.bottom
+    );
 
-    // блик
-    ctx.shadowBlur = 6;
-    ctx.beginPath();
-    ctx.ellipse(ball.x - 5, ball.y - 5, rx * 0.28, ry * 0.28, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffffcc';
-    ctx.fill();
+    if (topHit || bottomHit) hit();
 
-    // маленькая тень на полу
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
-    const distToFloor = (FLOOR_Y - ball.y - ball.radius);
-    const shadowAlpha = Math.max(0.08, 0.4 - distToFloor / 400);
-    ctx.beginPath();
-    ctx.ellipse(ball.x, FLOOR_Y - 2, rx * 1.1, 6, 0, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(0,0,0,${shadowAlpha})`;
-    ctx.fill();
+    if (o.x + o.w < 0) obstacles.splice(i, 1);
   }
 
-  function drawParticles() {
-    for (const p of particles) {
-      ctx.globalAlpha = Math.max(0, p.life);
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 3.5 * p.life, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
+  // Кристаллы
+  for (let i = gems.length - 1; i >= 0; i--) {
+    const g = gems[i];
 
-  function drawUI() {
-    // счёт в углу
-    ctx.font = 'bold 22px "Segoe UI", monospace';
-    ctx.fillStyle = '#dbe6ff';
-    ctx.shadowColor = '#001133';
-    ctx.shadowBlur = 10;
-    ctx.textAlign = 'left';
-    ctx.fillText(`⚡ ${Math.floor(score)}`, 20, 44);
-    ctx.shadowBlur = 0;
+    g.x -= speed;
+    g.phase += .08;
 
-    // скорость/сложность индикатор
-    const diffPercent = Math.min(100, Math.floor((currentSpeed - baseSpeed) / 4.2 * 100));
-    ctx.font = '14px monospace';
-    ctx.fillStyle = '#7f8fc0';
-    ctx.fillText(`сложность ${diffPercent}%`, 20, 72);
+    const dy = ball.y - (g.y + Math.sin(g.phase) * 5);
+    const dx = ball.x - g.x;
 
-    if (gameOver) {
-      // затемнение
-      ctx.fillStyle = 'rgba(5, 8, 18, 0.72)';
-      ctx.fillRect(0, 0, W, H);
+    if (Math.hypot(dx, dy) < ball.r + g.r) {
+      collected++;
+      score += 15;
 
-      ctx.textAlign = 'center';
-      ctx.font = 'bold 54px "Segoe UI", system-ui, sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = '#ff3b6f';
-      ctx.shadowBlur = 30;
-      ctx.fillText('💥 ПРОИГРЫШ', W / 2, H / 2 - 40);
-
-      ctx.font = 'bold 26px monospace';
-      ctx.fillStyle = '#ffd966';
-      ctx.shadowColor = '#ffaa00';
-      ctx.shadowBlur = 20;
-      ctx.fillText(`счёт: ${Math.floor(score)}`, W / 2, H / 2 + 25);
-
-      ctx.font = '20px monospace';
-      ctx.fillStyle = '#bcc9ff';
-      ctx.shadowColor = '#3355aa';
-      ctx.shadowBlur = 12;
-      ctx.fillText('нажми «заново» или пробел', W / 2, H / 2 + 80);
-      ctx.shadowBlur = 0;
-      ctx.shadowColor = 'transparent';
-      ctx.textAlign = 'left';
-    }
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    drawBackground();
-    drawObstacles();
-    drawParticles();
-    drawBall();
-    drawUI();
-  }
-
-  // ============ ГЛАВНЫЙ ЦИКЛ ============
-  function gameLoop() {
-    frameCounter++;
-
-    if (!gameOver && gameStarted) {
-      updateBall();
-      updateObstacles();
-      checkCollisions();
-      updateScore();
-      updateParticles();
-    } else {
-      // даже после проигрыша частицы доигрывают
-      updateParticles();
-    }
-
-    draw();
-    requestAnimationFrame(gameLoop);
-  }
-
-  // ============ УПРАВЛЕНИЕ ============
-  function handleKeyDown(e) {
-    if (e.code === 'Space' || e.key === ' ') {
-      e.preventDefault();
-      if (gameOver) {
-        // пробел перезапускает после проигрыша
-        resetGame();
-      } else {
-        keyPressed = true;
+      if (collected % 5 === 0) {
+        shield = 240;
       }
+
+      createParticles(g.x, g.y, "#ffe46c", 16);
+      gems.splice(i, 1);
+    } else if (g.x < -20) {
+      gems.splice(i, 1);
     }
   }
-  function handleKeyUp(e) {
-    if (e.code === 'Space' || e.key === ' ') {
-      e.preventDefault();
-      keyPressed = false;
-    }
+
+  // Частицы
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += .08;
+    p.life -= .025;
+
+    if (p.life <= 0) particles.splice(i, 1);
   }
-  function handleMouseDown(e) {
+
+  updateUI();
+}
+
+function drawBackground() {
+  const gradient = ctx.createLinearGradient(0, 0, W, H);
+  gradient.addColorStop(0, "#101a35");
+  gradient.addColorStop(1, "#080b19");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, W, H);
+
+  // Сетка
+  ctx.strokeStyle = "#ffffff08";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x < W; x += 40) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y < H; y += 40) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  // Звёзды
+  for (let i = 0; i < 45; i++) {
+    const x = (i * 173 + frame * .2) % W;
+    const y = (i * 79) % H;
+
+    ctx.fillStyle = "#8fcfff55";
+    ctx.fillRect(x, y, 2, 2);
+  }
+
+  // Пол
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = "#3a8fff";
+
+  ctx.fillStyle = "#273e73";
+  ctx.fillRect(0, floorY, W, 12);
+
+  ctx.shadowBlur = 0;
+}
+
+function drawObstacles() {
+  for (const o of obstacles) {
+    const gradient = ctx.createLinearGradient(o.x, 0, o.x + o.w, 0);
+
+    gradient.addColorStop(0, "#ed315e");
+    gradient.addColorStop(.5, "#ff6386");
+    gradient.addColorStop(1, "#922344");
+
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = "#ff315e";
+    ctx.shadowBlur = 17;
+
+    ctx.beginPath();
+    ctx.roundRect(o.x, 0, o.w, o.top, 7);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.roundRect(o.x, o.bottom, o.w, H - o.bottom, 7);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+  }
+}
+
+function drawGems() {
+  for (const g of gems) {
+    const y = g.y + Math.sin(g.phase) * 5;
+
+    ctx.save();
+    ctx.translate(g.x, y);
+    ctx.rotate(Math.PI / 4);
+
+    ctx.shadowColor = "#ffe66d";
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = "#ffe66d";
+    ctx.fillRect(-7, -7, 14, 14);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(-3, -3, 5, 5);
+
+    ctx.restore();
+  }
+}
+
+function drawBall() {
+  if (ball.invincible > 0 && Math.floor(frame / 5) % 2 === 0) return;
+
+  const rx = ball.r * (2 - ball.squash);
+  const ry = ball.r * ball.squash;
+
+  ctx.save();
+
+  ctx.shadowColor = shield > 0 ? "#35eaff" : "#4a9fff";
+  ctx.shadowBlur = 28;
+
+  const grad = ctx.createRadialGradient(
+    ball.x - 6, ball.y - 7, 2,
+    ball.x, ball.y, ball.r + 5
+  );
+
+  grad.addColorStop(0, "#ffffff");
+  grad.addColorStop(.35, "#a6ddff");
+  grad.addColorStop(1, "#2470ec");
+
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.ellipse(ball.x, ball.y, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (shield > 0) {
+    ctx.strokeStyle = "#4deeff";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, 25 + Math.sin(frame * .2) * 3, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+function drawOverlay(title, subtitle) {
+  ctx.fillStyle = "#050916cc";
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = "center";
+
+  ctx.shadowColor = "#359dff";
+  ctx.shadowBlur = 25;
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 48px Segoe UI";
+  ctx.fillText(title, W / 2, H / 2 - 20);
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#a9c6ed";
+  ctx.font = "20px Segoe UI";
+  ctx.fillText(subtitle, W / 2, H / 2 + 35);
+
+  ctx.textAlign = "left";
+}
+
+function draw() {
+  drawBackground();
+  drawObstacles();
+  drawGems();
+  drawParticles();
+  drawBall();
+
+  if (!started && !gameOver) {
+    drawOverlay("NEON BALL", "Нажми НАЧАТЬ, чтобы играть");
+  }
+
+  if (paused) {
+    drawOverlay("ПАУЗА", "Нажми ПРОБЕЛ или продолжить");
+  }
+
+  if (gameOver) {
+    drawOverlay("GAME OVER", "Счёт: " + Math.floor(score) + " · Нажми НАЧАТЬ");
+  }
+
+  ctx.fillStyle = "#ffffff99";
+  ctx.font = "13px Segoe UI";
+  ctx.fillText("SPEED " + speed.toFixed(1), W - 115, 25);
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// Управление
+window.addEventListener("keydown", e => {
+  if (e.code === "Space") {
     e.preventDefault();
+
     if (gameOver) return;
-    mousePressed = true;
+
+    if (!started) startGame();
+    else if (paused) {
+      paused = false;
+      $("pause").textContent = "⏸ ПАУЗА";
+    } else pressing = true;
   }
-  function handleMouseUp(e) {
-    e.preventDefault();
-    mousePressed = false;
-  }
-  function handleMouseLeave() {
-    mousePressed = false;
-  }
+});
 
-  function restartGame() {
-    resetGame();
-  }
+window.addEventListener("keyup", e => {
+  if (e.code === "Space") pressing = false;
+});
 
-  // ============ ИНИЦИАЛИЗАЦИЯ ============
-  function init() {
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+canvas.addEventListener("pointerdown", e => {
+  e.preventDefault();
 
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mouseup', handleMouseUp);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('mouseup', handleMouseUp); // на случай ухода за пределы
+  if (!started && !gameOver) startGame();
+  if (running && !paused) pressing = true;
+});
 
-    // touch
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      if (gameOver) return;
-      mousePressed = true;
-    }, { passive: false });
-    canvas.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      mousePressed = false;
-    }, { passive: false });
-    canvas.addEventListener('touchcancel', (e) => {
-      e.preventDefault();
-      mousePressed = false;
-    }, { passive: false });
+window.addEventListener("pointerup", () => {
+  pressing = false;
+});
 
-    document.getElementById('restartButton').addEventListener('click', restartGame);
+$("start").addEventListener("click", startGame);
 
-    // polyfill
-    if (!CanvasRenderingContext2D.prototype.roundRect) {
-      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-        if (w < 2 * r) r = w / 2;
-        if (h < 2 * r) r = h / 2;
-        this.moveTo(x + r, y);
-        this.lineTo(x + w - r, y);
-        this.quadraticCurveTo(x + w, y, x + w, y + r);
-        this.lineTo(x + w, y + h - r);
-        this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        this.lineTo(x + r, y + h);
-        this.quadraticCurveTo(x, y + h, x, y + h - r);
-        this.lineTo(x, y + r);
-        this.quadraticCurveTo(x, y, x + r, y);
-        return this;
-      };
-    }
+$("restart").addEventListener("click", resetGame);
 
-    // первый счёт
-    updateScoreDisplay();
-    resetGame();
-    gameLoop();
-  }
+$("pause").addEventListener("click", () => {
+  if (!started || gameOver) return;
 
-  init();
+  paused = !paused;
+  pressing = false;
+
+  $("pause").textContent = paused ? "▶ ПРОДОЛЖИТЬ" : "⏸ ПАУЗА";
+});
+
+$("difficulty").addEventListener("change", e => {
+  difficulty = e.target.value;
+  config = settings[difficulty];
+  resetGame();
+});
+
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.lineTo(x + w - r, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + r);
+    this.lineTo(x + w, y + h - r);
+    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    this.lineTo(x + r, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - r);
+    this.lineTo(x, y + r);
+    this.quadraticCurveTo(x, y, x + r, y);
+    this.closePath();
+    return this;
+  };
+}
+
+resetGame();
+loop();
+
 })();
 </script>
 </body>
