@@ -4,717 +4,2070 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEON BALL — Arcade</title>
+<title>NEON BALL — Version 1.0</title>
+
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+:root {
+  --bg:#080b18;
+  --panel:#111a30;
+  --panel2:#172541;
+  --line:#30466f;
+  --cyan:#52e5ff;
+  --blue:#468cff;
+  --purple:#a16cff;
+  --pink:#ff548d;
+  --gold:#ffda70;
+  --text:#e9f5ff;
+  --muted:#8195b8;
+}
+
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  user-select: none;
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  user-select:none;
 }
 
 body {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 15px;
+  min-height:100vh;
   background:
-    radial-gradient(circle at 50% 10%, #202b50, #090b17 65%);
-  font-family: Segoe UI, sans-serif;
-  color: white;
+    radial-gradient(ellipse at 50% 0%,#1a3157 0%,transparent 50%),
+    radial-gradient(ellipse at 90% 90%,#24133d 0%,transparent 45%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  display:flex;
+  justify-content:center;
+  padding:22px 12px;
 }
 
-.game {
-  width: min(900px, 100%);
-  padding: 20px;
-  background: #101528;
-  border: 1px solid #303e68;
-  border-radius: 25px;
-  box-shadow: 0 20px 70px #000b;
+button,select {
+  font:inherit;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  gap: 10px;
+button {
+  color:var(--text);
+  background:linear-gradient(135deg,#263e68,#172b4e);
+  border:1px solid #46638f;
+  border-radius:10px;
+  padding:10px 15px;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  transition:.15s;
 }
 
-.logo {
-  font-size: 25px;
-  font-weight: 900;
-  letter-spacing: 3px;
-  color: #74d9ff;
-  text-shadow: 0 0 15px #259cff;
-}
-
-.tag {
-  color: #8999c4;
-  font-size: 12px;
-}
-
-canvas {
-  width: 100%;
-  display: block;
-  border-radius: 17px;
-  background: #080e20;
-  border: 1px solid #293c67;
-  touch-action: none;
-  cursor: pointer;
-}
-
-.panel {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.stat {
-  flex: 1;
-  min-width: 90px;
-  padding: 12px;
-  text-align: center;
-  background: #1b2542;
-  border: 1px solid #35466e;
-  border-radius: 13px;
-}
-
-.stat small {
-  display: block;
-  color: #8da0ce;
-  font-size: 11px;
-  margin-bottom: 5px;
-}
-
-.stat strong {
-  font-size: 21px;
-}
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-button, select {
-  padding: 12px 17px;
-  border-radius: 12px;
-  border: 1px solid #526da8;
-  background: #263b69;
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #385795;
+button:hover:not(:disabled) {
+  border-color:var(--cyan);
+  filter:brightness(1.25);
+  transform:translateY(-1px);
 }
 
 button:active {
-  transform: scale(.96);
+  transform:scale(.97);
 }
 
-select {
-  flex: 1;
-  min-width: 140px;
+button:disabled {
+  opacity:.35;
+  cursor:not-allowed;
 }
 
 .primary {
-  background: #087fbb;
-  border-color: #49caff;
-  flex: 2;
+  background:linear-gradient(135deg,#087eae,#315de0);
+  border-color:#65dfff;
+  box-shadow:0 0 18px #269fff35;
+}
+
+.gold {
+  background:linear-gradient(135deg,#9b681c,#665019);
+  border-color:#e5c26b;
+}
+
+.danger {
+  background:linear-gradient(135deg,#85294a,#451a3c);
+  border-color:#e65c88;
+}
+
+.app {
+  width:min(1050px,100%);
+}
+
+.topbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+
+.brand {
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(22px,4vw,34px);
+  font-weight:900;
+  letter-spacing:3px;
+  color:var(--cyan);
+  text-shadow:0 0 18px #35bfff88;
+}
+
+.brand span {
+  color:white;
+}
+
+.version {
+  font-family:'Orbitron',sans-serif;
+  font-size:10px;
+  letter-spacing:1px;
+  color:var(--cyan);
+  border:1px solid #32718b;
+  background:#12283c;
+  padding:6px 10px;
+  border-radius:30px;
+  margin-top:5px;
+  display:inline-block;
+}
+
+.top-right {
+  display:flex;
+  gap:9px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.currency {
+  background:#1b2741;
+  border:1px solid #4a6086;
+  padding:9px 14px;
+  border-radius:10px;
+  color:var(--gold);
+  font-weight:700;
+}
+
+.gamebox {
+  background:linear-gradient(145deg,#111a30,#0b1020);
+  border:1px solid #34496d;
+  padding:14px;
+  border-radius:19px;
+  box-shadow:0 20px 65px #0009,inset 0 0 30px #263b641c;
+  position:relative;
+}
+
+canvas {
+  display:block;
+  width:100%;
+  height:auto;
+  background:#080e20;
+  border:1px solid #31456c;
+  border-radius:12px;
+  touch-action:none;
+  cursor:pointer;
+}
+
+.hud {
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:9px;
+  margin-top:12px;
+}
+
+.stat {
+  background:var(--panel2);
+  border:1px solid #34496b;
+  border-radius:10px;
+  text-align:center;
+  padding:9px 4px;
+}
+
+.stat small {
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+
+.stat strong {
+  font-family:'Orbitron',sans-serif;
+  font-size:19px;
+  color:white;
+}
+
+.stat.gold-stat strong {color:var(--gold)}
+.stat.cyan-stat strong {color:var(--cyan)}
+.stat.pink-stat strong {color:#ff83a6}
+
+.game-controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+
+.game-controls button {
+  flex:1;
+  min-width:100px;
 }
 
 .hint {
-  margin-top: 13px;
-  text-align: center;
-  color: #8091b9;
-  font-size: 12px;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  margin-top:12px;
+  letter-spacing:1px;
 }
 
-@media(max-width: 500px) {
-  .game { padding: 12px; }
-  .logo { font-size: 19px; }
-  .stat { min-width: 75px; padding: 8px; }
+.menu-grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:16px;
+}
+
+.menu-button {
+  padding:14px 5px;
+  text-align:center;
+  font-size:14px;
+}
+
+.menu-button span {
+  display:block;
+  font-size:23px;
+  margin-bottom:5px;
+}
+
+.section {
+  margin-top:17px;
+  padding:15px;
+  border:1px solid #2c4267;
+  background:#111a2d;
+  border-radius:13px;
+}
+
+.section-title {
+  font-family:'Orbitron',sans-serif;
+  font-size:13px;
+  letter-spacing:1px;
+  color:var(--cyan);
+  margin-bottom:12px;
+}
+
+.bottom-info {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  color:#778cad;
+  font-size:12px;
+  margin-top:14px;
+}
+
+/* MODALS */
+
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10;
+  background:#020510df;
+  backdrop-filter:blur(8px);
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+}
+
+.modal.open {
+  display:flex;
+}
+
+.modal-content {
+  width:min(720px,100%);
+  max-height:85vh;
+  overflow-y:auto;
+  background:linear-gradient(145deg,#15223c,#0d1427);
+  border:1px solid #42608d;
+  border-radius:17px;
+  padding:20px;
+  box-shadow:0 20px 80px #000;
+}
+
+.modal-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:18px;
+}
+
+.modal-header h2 {
+  font-family:'Orbitron',sans-serif;
+  font-size:18px;
+  color:var(--cyan);
+}
+
+.close {
+  padding:5px 12px;
+  font-size:20px;
+}
+
+.cards {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+  gap:11px;
+}
+
+.item-card {
+  background:#1a2945;
+  border:1px solid #344d76;
+  border-radius:12px;
+  padding:13px;
+  text-align:center;
+}
+
+.item-card.selected {
+  border-color:var(--cyan);
+  box-shadow:0 0 15px #36dfff33;
+}
+
+.skin-preview {
+  height:65px;
+  display:grid;
+  place-items:center;
+  font-size:42px;
+  filter:drop-shadow(0 0 12px currentColor);
+}
+
+.item-card h3 {
+  font-size:16px;
+  margin:6px 0;
+}
+
+.item-card p {
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:10px;
+}
+
+.item-card button {
+  width:100%;
+  font-size:13px;
+  padding:8px;
+}
+
+.achievement {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  background:#1a2945;
+  border:1px solid #344d76;
+  border-radius:10px;
+  margin-bottom:8px;
+}
+
+.achievement.locked {
+  opacity:.45;
+}
+
+.achievement-icon {
+  font-size:27px;
+}
+
+.achievement small {
+  color:var(--muted);
+  display:block;
+}
+
+.progress {
+  height:6px;
+  background:#263653;
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:7px;
+}
+
+.progress div {
+  height:100%;
+  background:var(--cyan);
+  width:0;
+}
+
+.settings-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid #293d5e;
+}
+
+.settings-row select {
+  background:#1c2c4b;
+  border:1px solid #47618b;
+  color:white;
+  padding:8px;
+  border-radius:8px;
+}
+
+#toast {
+  position:fixed;
+  bottom:25px;
+  left:50%;
+  transform:translateX(-50%) translateY(30px);
+  opacity:0;
+  pointer-events:none;
+  z-index:30;
+  background:#162d49;
+  border:1px solid var(--cyan);
+  border-radius:10px;
+  padding:12px 20px;
+  box-shadow:0 0 25px #30bfff55;
+  transition:.3s;
+  text-align:center;
+}
+
+#toast.show {
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+@media(max-width:600px) {
+  body {padding:10px 7px}
+  .gamebox {padding:7px}
+  .hud {grid-template-columns:repeat(3,1fr)}
+  .menu-grid {grid-template-columns:repeat(2,1fr)}
+  .stat strong {font-size:16px}
+  .brand {font-size:21px}
 }
 </style>
 </head>
+
 <body>
 
-<div class="game">
+<div class="app">
 
-  <div class="header">
+  <header class="topbar">
     <div>
-      <div class="logo">NEON BALL</div>
-      <div class="tag">ARCADE SURVIVAL SYSTEM · VERSION 0.2</div>
+      <div class="brand">NEON <span>BALL</span></div>
+      <div class="version">VERSION 1.0 · FULL EDITION</div>
     </div>
-    <div>⚡ <span id="difficultyName">NORMAL</span></div>
-  </div>
 
-  <canvas id="canvas" width="820" height="480"></canvas>
-
-  <div class="panel">
-    <div class="stat">
-      <small>🏆 СЧЁТ</small>
-      <strong id="score">0</strong>
+    <div class="top-right">
+      <div class="currency">💎 <span id="currency">0</span></div>
+      <button onclick="openModal('settingsModal')">⚙️</button>
     </div>
-    <div class="stat">
-      <small>⭐ РЕКОРД</small>
-      <strong id="best">0</strong>
-    </div>
-    <div class="stat">
-      <small>❤️ ЖИЗНИ</small>
-      <strong id="lives">3</strong>
-    </div>
-    <div class="stat">
-      <small>💎 КРИСТАЛЛЫ</small>
-      <strong id="gems">0</strong>
-    </div>
-  </div>
+  </header>
 
-  <div class="controls">
-    <select id="difficulty">
-      <option value="easy">🟢 Лёгкая</option>
-      <option value="normal" selected>🟡 Нормальная</option>
-      <option value="hard">🔴 Хардкор</option>
-    </select>
+  <main class="gamebox">
 
-    <button class="primary" id="start">▶ НАЧАТЬ</button>
-    <button id="pause">⏸ ПАУЗА</button>
-    <button id="restart">↻</button>
-  </div>
+    <canvas id="game" width="900" height="540"></canvas>
 
-  <div class="hint">
-    SPACE / ЗАЖАТЬ МЫШЬ / КАСАНИЕ — ПОДЪЁМ МЯЧА
+    <div class="hud">
+      <div class="stat cyan-stat">
+        <small>СЧЁТ</small>
+        <strong id="score">0</strong>
+      </div>
+
+      <div class="stat gold-stat">
+        <small>РЕКОРД</small>
+        <strong id="best">0</strong>
+      </div>
+
+      <div class="stat pink-stat">
+        <small>ЖИЗНИ</small>
+        <strong id="lives">3</strong>
+      </div>
+
+      <div class="stat">
+        <small>💎 МОНЕТЫ</small>
+        <strong id="gems">0</strong>
+      </div>
+
+      <div class="stat">
+        <small>⚡ СКОРОСТЬ</small>
+        <strong id="speed">1.0x</strong>
+      </div>
+    </div>
+
+    <div class="game-controls">
+      <button class="primary" onclick="startGame()">▶ ИГРАТЬ</button>
+      <button onclick="togglePause()">⏸ ПАУЗА</button>
+      <button onclick="resetGame()">↻ ЗАНОВО</button>
+    </div>
+
+    <div class="hint">
+      SPACE / МЫШЬ / КАСАНИЕ — УПРАВЛЕНИЕ МЯЧОМ
+    </div>
+  </main>
+
+  <section class="menu-grid">
+    <button class="menu-button" onclick="openShop()">
+      <span>🛒</span>МАГАЗИН
+    </button>
+
+    <button class="menu-button" onclick="openAchievements()">
+      <span>🏆</span>ДОСТИЖЕНИЯ
+    </button>
+
+    <button class="menu-button" onclick="openStats()">
+      <span>📊</span>СТАТИСТИКА
+    </button>
+
+    <button class="menu-button" onclick="openModal('worldModal')">
+      <span>🌌</span>МИРЫ
+    </button>
+
+    <button class="menu-button" onclick="openModal('modeModal')">
+      <span>🎮</span>РЕЖИМЫ
+    </button>
+
+    <button class="menu-button" onclick="openModal('powerModal')">
+      <span>⚡</span>СПОСОБНОСТИ
+    </button>
+
+    <button class="menu-button" onclick="openModal('settingsModal')">
+      <span>⚙️</span>НАСТРОЙКИ
+    </button>
+
+    <button class="menu-button" onclick="showHelp()">
+      <span>❔</span>ПОМОЩЬ
+    </button>
+  </section>
+
+  <div class="bottom-info">
+    <span>NEON BALL PROJECT</span>
+    <span>BUILD 1.0.0</span>
+    <span>© 2026</span>
   </div>
 
 </div>
 
+<!-- SHOP -->
+
+<div class="modal" id="shopModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🛒 МАГАЗИН</h2>
+      <button class="close" onclick="closeModals()">×</button>
+    </div>
+
+    <p style="color:#91a8cb;margin-bottom:15px">
+      Покупай новые мячи за кристаллы.
+    </p>
+
+    <div class="cards" id="shopCards"></div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+
+<div class="modal" id="achievementModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🏆 ДОСТИЖЕНИЯ</h2>
+      <button class="close" onclick="closeModals()">×</button>
+    </div>
+
+    <div id="achievementList"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+
+<div class="modal" id="statsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>📊 СТАТИСТИКА</h2>
+      <button class="close" onclick="closeModals()">×</button>
+    </div>
+
+    <div class="cards" id="statsCards"></div>
+  </div>
+</div>
+
+<!-- WORLDS -->
+
+<div class="modal" id="worldModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🌌 ВЫБОР МИРА</h2>
+      <button class="close" onclick="closeModals()">×</button>
+    </div>
+
+    <div class="cards" id="worldCards"></div>
+  </div>
+</div>
+
+<!-- MODES -->
+
+<div class="modal" id="modeModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🎮 ИГРОВЫЕ РЕЖИМЫ</h2>
+      <button class="close" onclick="closeModals()">×</button>
+    </div>
+
+    <div class="cards" id="modeCards"></div>
+  </div>
+</div>
+
+<!-- POWERS -->
+
+<div class="modal" id="powerModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚡ СПОСОБНОСТИ</h2>
+      <button class="close" onclick="closeModals()">×</button>
+    </div>
+
+    <div id="powerInfo"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+
+<div class="modal" id="settingsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚙️ НАСТРОЙКИ</h2>
+      <button class="close" onclick="closeModals()">×</button>
+    </div>
+
+    <div class="settings-row">
+      <span>Сложность</span>
+      <select id="difficulty" onchange="changeDifficulty(this.value)">
+        <option value="easy">Лёгкая</option>
+        <option value="normal" selected>Нормальная</option>
+        <option value="hard">Хардкор</option>
+      </select>
+    </div>
+
+    <div class="settings-row">
+      <span>Звуковые эффекты</span>
+      <input type="checkbox" id="sound" checked onchange="saveSettings()">
+    </div>
+
+    <div class="settings-row">
+      <span>Музыка</span>
+      <input type="checkbox" id="music" onchange="saveSettings()">
+    </div>
+
+    <div class="settings-row">
+      <span>Частицы</span>
+      <input type="checkbox" id="particlesToggle" checked onchange="saveSettings()">
+    </div>
+
+    <div class="settings-row">
+      <span>Показать подсказки</span>
+      <input type="checkbox" id="hints" checked onchange="saveSettings()">
+    </div>
+
+    <p style="color:#8297b8;font-size:13px;margin-top:15px">
+      Прогресс автоматически сохраняется в браузере.
+    </p>
+
+    <button class="danger" style="margin-top:20px;width:100%"
+      onclick="resetProgress()">СБРОСИТЬ ВЕСЬ ПРОГРЕСС</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
 <script>
-(() => {
 "use strict";
 
-const canvas = document.getElementById("canvas");
+/* =====================================
+   NEON BALL 1.0
+   GAME ENGINE
+===================================== */
+
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const W = canvas.width;
 const H = canvas.height;
+const FLOOR = H - 12;
 
 const $ = id => document.getElementById(id);
 
-const settings = {
-  easy: {
-    name: "EASY",
-    gravity: .30,
-    lift: .85,
-    speed: 2.6,
-    gap: 155,
-    lives: 5
-  },
-  normal: {
-    name: "NORMAL",
-    gravity: .42,
-    lift: 1.15,
-    speed: 3.4,
-    gap: 125,
-    lives: 3
-  },
-  hard: {
-    name: "HARDCORE",
-    gravity: .53,
-    lift: 1.35,
-    speed: 4.4,
-    gap: 105,
-    lives: 1
+const STORAGE = "neonBall_full_v1";
+
+const DEFAULT_DATA = {
+  coins: 0,
+  selectedSkin: "blue",
+  ownedSkins: ["blue"],
+  best: {},
+  achievements: [],
+  totalGames: 0,
+  totalCoins: 0,
+  totalScore: 0,
+  totalTime: 0,
+  selectedWorld: "space",
+  selectedMode: "classic",
+  difficulty: "normal",
+  settings: {
+    sound: true,
+    music: false,
+    particles: true,
+    hints: true
   }
 };
 
-let difficulty = "normal";
-let config = settings[difficulty];
+let data;
 
+try {
+  data = {
+    ...DEFAULT_DATA,
+    ...JSON.parse(localStorage.getItem(STORAGE) || "{}")
+  };
+
+  data.settings = {
+    ...DEFAULT_DATA.settings,
+    ...(data.settings || {})
+  };
+} catch {
+  data = structuredClone(DEFAULT_DATA);
+}
+
+function save() {
+  localStorage.setItem(STORAGE, JSON.stringify(data));
+  updateCurrency();
+}
+
+function updateCurrency() {
+  $("currency").textContent = data.coins;
+  $("gems").textContent = data.coins;
+}
+
+/* =====================================
+   CONFIGURATION
+===================================== */
+
+const difficulties = {
+  easy: {gravity:.30,lift:.87,speed:2.6,gap:155,lives:5},
+  normal: {gravity:.42,lift:1.15,speed:3.5,gap:130,lives:3},
+  hard: {gravity:.52,lift:1.32,speed:4.5,gap:108,lives:1}
+};
+
+const skins = [
+  {id:"blue",name:"NEON BLUE",emoji:"🔵",color:"#4baaff",price:0},
+  {id:"fire",name:"FIREBALL",emoji:"🔴",color:"#ff543e",price:80},
+  {id:"toxic",name:"TOXIC",emoji:"🟢",color:"#75ff72",price:120},
+  {id:"purple",name:"PURPLE",emoji:"🟣",color:"#b16aff",price:160},
+  {id:"gold",name:"GOLD",emoji:"🟡",color:"#ffd65e",price:250},
+  {id:"ice",name:"ICE",emoji:"🔷",color:"#8df4ff",price:300},
+  {id:"dark",name:"VOID",emoji:"⚫",color:"#ad9aff",price:450},
+  {id:"rainbow",name:"RAINBOW",emoji:"🌈",color:"#ff78d2",price:700}
+];
+
+const worlds = [
+  {id:"space",name:"КОСМОС",emoji:"🌌",description:"Звёзды и глубокий космос"},
+  {id:"cyber",name:"КИБЕРПАНК",emoji:"🌆",description:"Город будущего"},
+  {id:"volcano",name:"ВУЛКАН",emoji:"🌋",description:"Огненные оттенки"},
+  {id:"ice",name:"ЛЕДЯНОЙ МИР",emoji:"❄️",description:"Холодная атмосфера"}
+];
+
+const modes = [
+  {id:"classic",name:"КЛАССИКА",emoji:"🎮",description:"Стандартное выживание"},
+  {id:"rush",name:"RUSH",emoji:"⚡",description:"Быстрое испытание"},
+  {id:"zen",name:"ZEN",emoji:"🧘",description:"Спокойная игра без препятствий",secret:true},
+  {id:"survival",name:"SURVIVAL",emoji:"💀",description:"Одна жизнь, максимальная скорость",secret:true}
+];
+
+const achievements = [
+  {id:"first",name:"Первый запуск",desc:"Сыграть первую игру",reward:10,icon:"🎮",check:()=>data.totalGames>=1},
+  {id:"score50",name:"Разминка",desc:"Набрать 50 очков",reward:15,icon:"⭐",check:()=>score>=50},
+  {id:"score100",name:"Сотня",desc:"Набрать 100 очков",reward:25,icon:"💯",check:()=>score>=100},
+  {id:"score300",name:"Профи",desc:"Набрать 300 очков",reward:50,icon:"🏅",check:()=>score>=300},
+  {id:"score500",name:"Легенда",desc:"Набрать 500 очков",reward:100,icon:"👑",check:()=>score>=500},
+  {id:"gems10",name:"Коллекционер",desc:"Собрать 10 кристаллов",reward:20,icon:"💎",check:()=>runGems>=10},
+  {id:"gems50",name:"Сокровища",desc:"Собрать 50 кристаллов за игру",reward:70,icon:"💰",check:()=>runGems>=50},
+  {id:"boss",name:"Победитель",desc:"Победить босса",reward:100,icon:"👾",check:()=>bossKills>=1},
+  {id:"games10",name:"Постоянный игрок",desc:"Сыграть 10 игр",reward:60,icon:"🎯",check:()=>data.totalGames>=10},
+  {id:"hard",name:"Без страха",desc:"Набрать 100 очков на хардкоре",reward:100,icon:"🔥",check:()=>difficulty==="hard"&&score>=100}
+];
+
+/* =====================================
+   GAME STATE
+===================================== */
+
+let config;
 let ball;
-let obstacles = [];
-let gems = [];
-let particles = [];
-let stars = [];
+let obstacles=[];
+let gems=[];
+let powerups=[];
+let particles=[];
+let stars=[];
 
-let score = 0;
-let best = 0;
-let collected = 0;
-let lives = 3;
+let score=0;
+let best=0;
+let lives=3;
+let runGems=0;
+let bossKills=0;
+let speed=1;
+let spawnTimer=0;
+let powerTimer=0;
+let frame=0;
+let gameTime=0;
+let boss=null;
+let bossTimer=0;
 
-let running = false;
-let paused = false;
-let gameOver = false;
-let started = false;
-let pressing = false;
+let running=false;
+let paused=false;
+let started=false;
+let gameOver=false;
+let pressing=false;
 
-let speed = 3.4;
-let spawnTimer = 0;
-let frame = 0;
-let shield = 0;
+let activePowers={
+  shield:0,
+  magnet:0,
+  slow:0,
+  double:0
+};
 
-const floorY = H - 12;
+let hitCooldown=0;
+let gameStartTime=0;
 
-function random(min, max) {
-  return Math.random() * (max - min) + min;
+let audioCtx=null;
+let musicTimer=null;
+
+/* =====================================
+   AUDIO
+===================================== */
+
+function tone(freq=440,duration=.1,type="sine",volume=.035) {
+  if(!data.settings.sound)return;
+
+  try {
+    audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
+
+    if(audioCtx.state==="suspended")audioCtx.resume();
+
+    const oscillator=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+
+    oscillator.type=type;
+    oscillator.frequency.value=freq;
+    gain.gain.setValueAtTime(volume,audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
+
+    oscillator.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime+duration);
+  } catch {}
 }
 
-function getBest() {
-  return Number(localStorage.getItem("neonBest_" + difficulty) || 0);
+function startMusic() {
+  if(!data.settings.music || musicTimer)return;
+
+  const notes=[220,277,330,277,196,247,294,247];
+  let i=0;
+
+  musicTimer=setInterval(()=>{
+    if(running&&!paused)tone(notes[i++%notes.length],.25,"triangle",.012);
+  },350);
 }
 
-function saveBest() {
-  localStorage.setItem("neonBest_" + difficulty, best);
+function stopMusic() {
+  clearInterval(musicTimer);
+  musicTimer=null;
 }
 
-function updateUI() {
-  $("score").textContent = Math.floor(score);
-  $("best").textContent = best;
-  $("lives").textContent = lives;
-  $("gems").textContent = collected;
-  $("difficultyName").textContent = config.name;
+/* =====================================
+   INITIALIZATION
+===================================== */
+
+function createStars() {
+  stars=[];
+
+  for(let i=0;i<100;i++){
+    stars.push({
+      x:Math.random()*W,
+      y:Math.random()*H,
+      size:Math.random()*2+0.5,
+      speed:Math.random()*.5+.1
+    });
+  }
 }
 
-function makeBall() {
+function createBall() {
   return {
-    x: 140,
-    y: floorY - 15,
-    vy: 0,
-    r: 15,
-    squash: 1,
-    invincible: 0
+    x:145,
+    y:FLOOR-16,
+    vy:0,
+    r:16,
+    squash:1
   };
 }
 
 function resetGame() {
-  config = settings[difficulty];
+  config=difficulties[data.difficulty]||difficulties.normal;
 
-  score = 0;
-  collected = 0;
-  lives = config.lives;
+  score=0;
+  lives=config.lives;
+  runGems=0;
+  bossKills=0;
+  speed=1;
+  spawnTimer=0;
+  powerTimer=0;
+  gameTime=0;
+  frame=0;
+  boss=null;
+  bossTimer=0;
+  hitCooldown=0;
 
-  speed = config.speed;
-  obstacles = [];
-  gems = [];
-  particles = [];
+  activePowers={
+    shield:0,
+    magnet:0,
+    slow:0,
+    double:0
+  };
 
-  spawnTimer = 0;
-  frame = 0;
-  shield = 0;
+  ball=createBall();
+  obstacles=[];
+  gems=[];
+  powerups=[];
+  particles=[];
 
-  ball = makeBall();
+  running=false;
+  paused=false;
+  started=false;
+  gameOver=false;
+  pressing=false;
 
-  running = false;
-  paused = false;
-  gameOver = false;
-  started = false;
-  pressing = false;
+  best=data.best[data.difficulty]||0;
 
-  best = getBest();
+  $("score").textContent="0";
+  $("best").textContent=best;
+  $("lives").textContent=lives;
+  $("speed").textContent="1.0x";
 
-  $("pause").textContent = "⏸ ПАУЗА";
-
-  updateUI();
+  save();
   draw();
 }
 
 function startGame() {
-  if (gameOver) resetGame();
+  if(gameOver)resetGame();
 
-  running = true;
-  started = true;
-  paused = false;
+  if(!started) {
+    started=true;
+    running=true;
+    paused=false;
+    data.totalGames++;
+    gameStartTime=Date.now();
+    save();
+    tone(520,.15,"sine");
+    startMusic();
+  } else if(paused) {
+    paused=false;
+    running=true;
+  }
 }
 
-function createParticles(x, y, color, amount = 12) {
-  for (let i = 0; i < amount; i++) {
+function togglePause() {
+  if(!started||gameOver)return;
+
+  paused=!paused;
+  running=!paused;
+  pressing=false;
+
+  tone(300,.1);
+}
+
+/* =====================================
+   PARTICLES
+===================================== */
+
+function burst(x,y,color,count=15) {
+  if(!data.settings.particles)return;
+
+  for(let i=0;i<count;i++){
+    const angle=Math.random()*Math.PI*2;
+    const velocity=Math.random()*4+1;
+
     particles.push({
-      x, y,
-      vx: random(-4, 4),
-      vy: random(-4, 4),
-      life: 1,
-      color,
-      size: random(2, 5)
+      x,y,
+      vx:Math.cos(angle)*velocity,
+      vy:Math.sin(angle)*velocity,
+      life:1,
+      size:Math.random()*4+1,
+      color
     });
   }
 }
+
+/* =====================================
+   SPAWNING
+===================================== */
 
 function spawnObstacle() {
-  const gap = Math.max(
-    82,
-    config.gap - Math.min(25, score / 35)
-  );
-
-  const center = random(110, H - 110);
-  const width = 21;
-  const topHeight = center - gap / 2;
-  const bottomY = center + gap / 2;
+  const gap=Math.max(82,config.gap-Math.min(25,score/30));
+  const center=110+Math.random()*(H-220);
 
   obstacles.push({
-    x: W + 20,
-    w: width,
-    top: topHeight,
-    bottom: bottomY,
-    passed: false
+    x:W+30,
+    w:22,
+    top:center-gap/2,
+    bottom:center+gap/2,
+    passed:false
   });
 
-  if (Math.random() < .65) {
+  if(Math.random()<.7){
     gems.push({
-      x: W + 20 + width / 2,
-      y: center,
-      r: 9,
-      phase: random(0, 6)
+      x:W+30,
+      y:center,
+      phase:Math.random()*6,
+      r:10
     });
   }
 }
 
-function collisionCircleRect(cx, cy, r, rx, ry, rw, rh) {
-  const x = Math.max(rx, Math.min(cx, rx + rw));
-  const y = Math.max(ry, Math.min(cy, ry + rh));
+function spawnPowerup() {
+  const types=["shield","magnet","slow","double"];
+  const type=types[Math.floor(Math.random()*types.length)];
 
-  return (cx - x) ** 2 + (cy - y) ** 2 < r * r;
+  powerups.push({
+    x:W+30,
+    y:100+Math.random()*(H-230),
+    type,
+    phase:0
+  });
 }
 
-function hit() {
-  if (ball.invincible > 0 || gameOver) return;
+function spawnBoss() {
+  if(boss)return;
 
-  if (shield > 0) {
-    shield = 0;
-    ball.invincible = 75;
-    createParticles(ball.x, ball.y, "#4deeff", 25);
+  boss={
+    x:W+80,
+    y:H/2,
+    hp:5,
+    maxHp:5,
+    phase:0,
+    attack:0,
+    warning:0,
+    active:false
+  };
+
+  bossTimer=0;
+  toast("⚠️ ВНИМАНИЕ! ПОЯВИЛСЯ БОСС!");
+  tone(100,.5,"sawtooth");
+}
+
+function circleRect(cx,cy,r,rx,ry,rw,rh) {
+  const x=Math.max(rx,Math.min(cx,rx+rw));
+  const y=Math.max(ry,Math.min(cy,ry+rh));
+
+  return (cx-x)**2+(cy-y)**2<r*r;
+}
+
+/* =====================================
+   COLLISIONS
+===================================== */
+
+function damage() {
+  if(hitCooldown>0||gameOver)return;
+
+  if(activePowers.shield>0){
+    activePowers.shield=0;
+    hitCooldown=80;
+    burst(ball.x,ball.y,"#51eaff",25);
+    tone(850,.2);
+    toast("🛡️ ЩИТ СПАС ТЕБЯ!");
     return;
   }
 
   lives--;
-  ball.invincible = 100;
+  hitCooldown=110;
+  ball.vy=-5;
 
-  createParticles(ball.x, ball.y, "#ff456b", 25);
+  burst(ball.x,ball.y,"#ff527b",25);
+  tone(150,.25,"sawtooth");
 
-  if (lives <= 0) {
-    endGame();
-  } else {
-    ball.vy = -5;
-  }
+  if(lives<=0)endGame();
 
-  updateUI();
+  updateHUD();
 }
 
-function endGame() {
-  running = false;
-  gameOver = true;
-  pressing = false;
+function collectGem(g) {
+  runGems++;
+  const value=activePowers.double>0?2:1;
 
-  if (score > best) {
-    best = Math.floor(score);
-    saveBest();
+  data.coins+=value;
+  data.totalCoins+=value;
+  score+=15*value;
+
+  burst(g.x,g.y,"#ffe06c",15);
+  tone(800,.1,"sine");
+
+  checkAchievements();
+  save();
+}
+
+function activatePower(type) {
+  activePowers[type]=600;
+
+  const names={
+    shield:"🛡️ ЩИТ",
+    magnet:"🧲 МАГНИТ",
+    slow:"⏳ ЗАМЕДЛЕНИЕ",
+    double:"✨ ДВОЙНЫЕ ОЧКИ"
+  };
+
+  toast(names[type]+" АКТИВИРОВАН!");
+  tone(700,.2,"triangle");
+}
+
+function updateBoss() {
+  if(!boss)return;
+
+  boss.phase+=.025;
+  boss.attack++;
+
+  boss.x+=(W-125-boss.x)*.025;
+  boss.y=H/2+Math.sin(boss.phase)*110;
+
+  if(boss.attack>130){
+    boss.warning=45;
+    boss.attack=0;
   }
 
-  updateUI();
+  if(boss.warning>0) {
+    boss.warning--;
+
+    if(boss.warning===1) {
+      // Игроку показывается визуальное предупреждение.
+      tone(180,.2,"sawtooth");
+    }
+  }
+
+  if(boss.hp<=0){
+    burst(boss.x,boss.y,"#ff5a9c",60);
+    boss=null;
+    bossKills++;
+    score+=100;
+    data.coins+=50;
+    data.totalCoins+=50;
+    toast("🏆 БОСС ПОБЕЖДЁН! +50 💎");
+    tone(950,.5);
+    checkAchievements();
+    save();
+  }
 }
+
+/* =====================================
+   GAME UPDATE
+===================================== */
 
 function update() {
   frame++;
 
-  if (!running || paused || gameOver) return;
+  for(const s of stars){
+    s.x-=s.speed;
 
-  score += .08;
-  speed = config.speed + Math.min(3, score / 180);
-
-  if (score > best) {
-    best = Math.floor(score);
+    if(s.x<0){
+      s.x=W;
+      s.y=Math.random()*H;
+    }
   }
 
-  // Мяч
-  ball.vy += config.gravity;
+  if(!running||paused||gameOver)return;
 
-  if (pressing) {
-    ball.vy -= config.lift;
-    ball.vy = Math.max(ball.vy, -7);
+  gameTime+=1/60;
+
+  const timeScale=activePowers.slow>0?.5:1;
+  const currentSpeed=(config.speed+Math.min(4,score/200))*timeScale;
+
+  speed=currentSpeed/config.speed;
+
+  if(score<1000)score+=.08*(activePowers.double>0?2:1);
+
+  // Player
+
+  ball.vy+=config.gravity*timeScale;
+
+  if(pressing){
+    ball.vy-=config.lift*timeScale;
+    ball.vy=Math.max(-7,ball.vy);
   }
 
-  ball.y += ball.vy;
+  ball.y+=ball.vy*timeScale;
 
-  if (ball.y + ball.r > floorY) {
-    ball.y = floorY - ball.r;
-    ball.vy = -Math.abs(ball.vy) * .78;
-    ball.squash = .72;
-
-    if (Math.abs(ball.vy) < .7) ball.vy = 0;
+  if(ball.y+ball.r>FLOOR){
+    ball.y=FLOOR-ball.r;
+    ball.vy=-Math.abs(ball.vy)*.78;
+    ball.squash=.75;
   }
 
-  if (ball.y - ball.r < 0) {
-    ball.y = ball.r;
-    ball.vy = Math.abs(ball.vy) * .4;
+  if(ball.y-ball.r<0){
+    ball.y=ball.r;
+    ball.vy=Math.abs(ball.vy)*.4;
   }
 
-  ball.squash += (1 - ball.squash) * .2;
+  ball.squash+=(1-ball.squash)*.2;
 
-  if (ball.invincible > 0) ball.invincible--;
-  if (shield > 0) shield--;
+  if(hitCooldown>0)hitCooldown--;
 
-  // Препятствия
-  spawnTimer++;
-
-  const interval = Math.max(49, 95 - score / 12);
-
-  if (spawnTimer >= interval) {
-    spawnObstacle();
-    spawnTimer = 0;
+  for(const key in activePowers){
+    if(activePowers[key]>0)activePowers[key]--;
   }
 
-  for (let i = obstacles.length - 1; i >= 0; i--) {
-    const o = obstacles[i];
+  // Obstacles
 
-    o.x -= speed;
+  if(data.selectedMode!=="zen"){
+    spawnTimer++;
 
-    if (!o.passed && o.x + o.w < ball.x) {
-      o.passed = true;
-      score += 5;
+    const interval=data.selectedMode==="rush"?48:Math.max(45,90-score/25);
+
+    if(spawnTimer>interval){
+      spawnObstacle();
+      spawnTimer=0;
     }
 
-    const topHit = collisionCircleRect(
-      ball.x, ball.y, ball.r,
-      o.x, 0, o.w, o.top
-    );
+    for(let i=obstacles.length-1;i>=0;i--){
+      const o=obstacles[i];
+      o.x-=currentSpeed;
 
-    const bottomHit = collisionCircleRect(
-      ball.x, ball.y, ball.r,
-      o.x, o.bottom, o.w, H - o.bottom
-    );
-
-    if (topHit || bottomHit) hit();
-
-    if (o.x + o.w < 0) obstacles.splice(i, 1);
-  }
-
-  // Кристаллы
-  for (let i = gems.length - 1; i >= 0; i--) {
-    const g = gems[i];
-
-    g.x -= speed;
-    g.phase += .08;
-
-    const dy = ball.y - (g.y + Math.sin(g.phase) * 5);
-    const dx = ball.x - g.x;
-
-    if (Math.hypot(dx, dy) < ball.r + g.r) {
-      collected++;
-      score += 15;
-
-      if (collected % 5 === 0) {
-        shield = 240;
+      if(!o.passed&&o.x+o.w<ball.x){
+        o.passed=true;
+        score+=5;
       }
 
-      createParticles(g.x, g.y, "#ffe46c", 16);
-      gems.splice(i, 1);
-    } else if (g.x < -20) {
-      gems.splice(i, 1);
+      if(
+        circleRect(ball.x,ball.y,ball.r,o.x,0,o.w,o.top)||
+        circleRect(ball.x,ball.y,ball.r,o.x,o.bottom,o.w,H-o.bottom)
+      )damage();
+
+      if(o.x+o.w<0)obstacles.splice(i,1);
     }
   }
 
-  // Частицы
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
+  // Gems
 
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += .08;
-    p.life -= .025;
+  for(let i=gems.length-1;i>=0;i--){
+    const g=gems[i];
+    g.x-=currentSpeed;
+    g.phase+=.08;
 
-    if (p.life <= 0) particles.splice(i, 1);
+    let dx=ball.x-g.x;
+    let dy=ball.y-g.y;
+
+    if(activePowers.magnet>0&&Math.hypot(dx,dy)<190){
+      g.x+=dx*.035;
+      g.y+=dy*.035;
+    }
+
+    if(Math.hypot(dx,dy)<ball.r+g.r+3){
+      collectGem(g);
+      gems.splice(i,1);
+    }else if(g.x<-20){
+      gems.splice(i,1);
+    }
   }
 
-  updateUI();
+  // Powerups
+
+  powerTimer++;
+
+  if(powerTimer>500){
+    spawnPowerup();
+    powerTimer=0;
+  }
+
+  for(let i=powerups.length-1;i>=0;i--){
+    const p=powerups[i];
+    p.x-=currentSpeed;
+    p.phase+=.07;
+
+    if(Math.hypot(ball.x-p.x,ball.y-p.y)<ball.r+17){
+      activatePower(p.type);
+      burst(p.x,p.y,"#8efaff",20);
+      powerups.splice(i,1);
+    }else if(p.x<-30){
+      powerups.splice(i,1);
+    }
+  }
+
+  // Bosses: every 500 points
+
+  if(data.selectedMode!=="zen"&&!boss&&Math.floor(score/500)>bossKills){
+    spawnBoss();
+  }
+
+  updateBoss();
+
+  // Boss warning hazard: a telegraphed horizontal attack.
+  if(boss&&boss.warning>0&&boss.warning<30){
+    const hazardY=boss.y;
+    if(Math.abs(ball.y-hazardY)<35&&Math.abs(ball.x-boss.x)<85){
+      damage();
+    }
+  }
+
+  // Boss collision
+
+  if(boss){
+    if(Math.hypot(ball.x-boss.x,ball.y-boss.y)<ball.r+36){
+      damage();
+    }
+
+    // The boss can be hit by a close pass.
+    if(Math.abs(ball.x-boss.x)<ball.r+40&&Math.abs(ball.y-boss.y)<ball.r+40){
+      if(frame%35===0){
+        boss.hp--;
+        score+=10;
+        burst(boss.x,boss.y,"#ff75bb",12);
+      }
+    }
+  }
+
+  // Particles
+
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.vy+=.04;
+    p.life-=.025;
+
+    if(p.life<=0)particles.splice(i,1);
+  }
+
+  if(data.selectedMode==="rush"&&gameTime>=60)endGame();
+
+  updateHUD();
+  checkAchievements();
+}
+
+/* =====================================
+   DRAWING
+===================================== */
+
+function worldColors() {
+  const themes={
+    space:["#0b1731","#080b1b","#4e8cff"],
+    cyber:["#21103b","#0b1027","#ff4bba"],
+    volcano:["#3a151c","#100b14","#ff6b30"],
+    ice:["#12344c","#081322","#71e9ff"]
+  };
+
+  return themes[data.selectedWorld]||themes.space;
 }
 
 function drawBackground() {
-  const gradient = ctx.createLinearGradient(0, 0, W, H);
-  gradient.addColorStop(0, "#101a35");
-  gradient.addColorStop(1, "#080b19");
+  const colors=worldColors();
 
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, W, H);
+  const gradient=ctx.createLinearGradient(0,0,W,H);
+  gradient.addColorStop(0,colors[0]);
+  gradient.addColorStop(1,colors[1]);
 
-  // Сетка
-  ctx.strokeStyle = "#ffffff08";
-  ctx.lineWidth = 1;
+  ctx.fillStyle=gradient;
+  ctx.fillRect(0,0,W,H);
 
-  for (let x = 0; x < W; x += 40) {
+  // Grid
+
+  ctx.strokeStyle="#ffffff09";
+  ctx.lineWidth=1;
+
+  for(let x=0;x<W;x+=45){
     ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, H);
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,H);
     ctx.stroke();
   }
 
-  for (let y = 0; y < H; y += 40) {
+  for(let y=0;y<H;y+=45){
     ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(W, y);
+    ctx.moveTo(0,y);
+    ctx.lineTo(W,y);
     ctx.stroke();
   }
 
-  // Звёзды
-  for (let i = 0; i < 45; i++) {
-    const x = (i * 173 + frame * .2) % W;
-    const y = (i * 79) % H;
+  // Stars
 
-    ctx.fillStyle = "#8fcfff55";
-    ctx.fillRect(x, y, 2, 2);
+  for(const s of stars){
+    ctx.fillStyle="#ffffff88";
+    ctx.globalAlpha=.35+Math.sin(frame*.04+s.x)*.3;
+    ctx.fillRect(s.x,s.y,s.size,s.size);
   }
 
-  // Пол
-  ctx.shadowBlur = 20;
-  ctx.shadowColor = "#3a8fff";
+  ctx.globalAlpha=1;
 
-  ctx.fillStyle = "#273e73";
-  ctx.fillRect(0, floorY, W, 12);
+  // Neon floor
 
-  ctx.shadowBlur = 0;
+  ctx.shadowColor=colors[2];
+  ctx.shadowBlur=20;
+  ctx.fillStyle=colors[2];
+  ctx.fillRect(0,FLOOR,W,3);
+  ctx.shadowBlur=0;
 }
 
 function drawObstacles() {
-  for (const o of obstacles) {
-    const gradient = ctx.createLinearGradient(o.x, 0, o.x + o.w, 0);
+  for(const o of obstacles){
+    const color=worldColors()[2];
 
-    gradient.addColorStop(0, "#ed315e");
-    gradient.addColorStop(.5, "#ff6386");
-    gradient.addColorStop(1, "#922344");
+    const gradient=ctx.createLinearGradient(o.x,0,o.x+o.w,0);
+    gradient.addColorStop(0,color);
+    gradient.addColorStop(.5,"#ffffff");
+    gradient.addColorStop(1,color);
 
-    ctx.fillStyle = gradient;
-    ctx.shadowColor = "#ff315e";
-    ctx.shadowBlur = 17;
+    ctx.fillStyle=gradient;
+    ctx.shadowColor=color;
+    ctx.shadowBlur=20;
 
     ctx.beginPath();
-    ctx.roundRect(o.x, 0, o.w, o.top, 7);
+    ctx.roundRect(o.x,0,o.w,o.top,7);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.roundRect(o.x, o.bottom, o.w, H - o.bottom, 7);
+    ctx.roundRect(o.x,o.bottom,o.w,H-o.bottom,7);
     ctx.fill();
 
-    ctx.shadowBlur = 0;
+    ctx.shadowBlur=0;
+  }
+}
+
+function drawBall() {
+  const skin=skins.find(s=>s.id===data.selectedSkin)||skins[0];
+
+  if(hitCooldown>0&&Math.floor(frame/5)%2===0)return;
+
+  const color=skin.color;
+
+  const grad=ctx.createRadialGradient(
+    ball.x-6,ball.y-7,2,
+    ball.x,ball.y,ball.r+7
+  );
+
+  if(data.selectedSkin==="rainbow"){
+    grad.addColorStop(0,"white");
+    grad.addColorStop(.4,"#ff6fe5");
+    grad.addColorStop(.75,"#5eeaff");
+    grad.addColorStop(1,"#7357ff");
+  }else{
+    grad.addColorStop(0,"#ffffff");
+    grad.addColorStop(.3,color);
+    grad.addColorStop(1,"#17274d");
+  }
+
+  ctx.save();
+  ctx.shadowColor=color;
+  ctx.shadowBlur=30;
+
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  ctx.ellipse(
+    ball.x,ball.y,
+    ball.r*(2-ball.squash),
+    ball.r*ball.squash,
+    0,0,Math.PI*2
+  );
+  ctx.fill();
+
+  ctx.restore();
+
+  if(activePowers.shield>0){
+    ctx.strokeStyle="#5ceeff";
+    ctx.lineWidth=3;
+    ctx.shadowColor="#4deaff";
+    ctx.shadowBlur=15;
+    ctx.beginPath();
+    ctx.arc(ball.x,ball.y,27+Math.sin(frame*.2)*3,0,Math.PI*2);
+    ctx.stroke();
+    ctx.shadowBlur=0;
   }
 }
 
 function drawGems() {
-  for (const g of gems) {
-    const y = g.y + Math.sin(g.phase) * 5;
+  for(const g of gems){
+    const y=g.y+Math.sin(g.phase)*6;
 
     ctx.save();
-    ctx.translate(g.x, y);
-    ctx.rotate(Math.PI / 4);
+    ctx.translate(g.x,y);
+    ctx.rotate(Math.PI/4);
 
-    ctx.shadowColor = "#ffe66d";
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = "#ffe66d";
-    ctx.fillRect(-7, -7, 14, 14);
+    ctx.fillStyle="#ffe06c";
+    ctx.shadowColor="#ffe06c";
+    ctx.shadowBlur=20;
+    ctx.fillRect(-7,-7,14,14);
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(-3, -3, 5, 5);
+    ctx.fillStyle="white";
+    ctx.fillRect(-3,-3,5,5);
 
     ctx.restore();
   }
 }
 
-function drawBall() {
-  if (ball.invincible > 0 && Math.floor(frame / 5) % 2 === 0) return;
+function drawPowerups() {
+  const icons={
+    shield:"🛡️",
+    magnet:"🧲",
+    slow:"⏳",
+    double:"✨"
+  };
 
-  const rx = ball.r * (2 - ball.squash);
-  const ry = ball.r * ball.squash;
+  for(const p of powerups){
+    ctx.save();
+    ctx.translate(p.x,p.y+Math.sin(p.phase)*5);
+    ctx.shadowColor="#57efff";
+    ctx.shadowBlur=20;
+    ctx.fillStyle="#173c5b";
+    ctx.beginPath();
+    ctx.arc(0,0,19,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.font="20px Arial";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(icons[p.type],0,1);
+    ctx.restore();
+  }
+}
+
+function drawBoss() {
+  if(!boss)return;
 
   ctx.save();
 
-  ctx.shadowColor = shield > 0 ? "#35eaff" : "#4a9fff";
-  ctx.shadowBlur = 28;
+  ctx.shadowColor="#ff3889";
+  ctx.shadowBlur=30;
 
-  const grad = ctx.createRadialGradient(
-    ball.x - 6, ball.y - 7, 2,
-    ball.x, ball.y, ball.r + 5
-  );
-
-  grad.addColorStop(0, "#ffffff");
-  grad.addColorStop(.35, "#a6ddff");
-  grad.addColorStop(1, "#2470ec");
-
-  ctx.fillStyle = grad;
+  ctx.fillStyle="#9c2766";
   ctx.beginPath();
-  ctx.ellipse(ball.x, ball.y, rx, ry, 0, 0, Math.PI * 2);
+  ctx.arc(boss.x,boss.y,35,0,Math.PI*2);
   ctx.fill();
 
-  if (shield > 0) {
-    ctx.strokeStyle = "#4deeff";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, 25 + Math.sin(frame * .2) * 3, 0, Math.PI * 2);
-    ctx.stroke();
-  }
+  ctx.shadowBlur=0;
+
+  ctx.fillStyle="#fff";
+  ctx.beginPath();
+  ctx.arc(boss.x-12,boss.y-7,6,0,Math.PI*2);
+  ctx.arc(boss.x+12,boss.y-7,6,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle="#080b18";
+  ctx.beginPath();
+  ctx.arc(boss.x-12,boss.y-7,2,0,Math.PI*2);
+  ctx.arc(boss.x+12,boss.y-7,2,0,Math.PI*2);
+  ctx.fill();
 
   ctx.restore();
+
+  // Health bar
+
+  ctx.fillStyle="#25182f";
+  ctx.fillRect(W/2-100,20,200,12);
+
+  ctx.fillStyle="#ff478f";
+  ctx.fillRect(W/2-100,20,200*(boss.hp/boss.maxHp),12);
+
+  ctx.textAlign="center";
+  ctx.fillStyle="white";
+  ctx.font="bold 12px Orbitron";
+  ctx.fillText("BOSS",W/2,14);
+  ctx.textAlign="left";
+
+  if(boss.warning>0){
+    ctx.fillStyle="#ff405b";
+    ctx.globalAlpha=.3+Math.sin(frame*.4)*.3;
+    ctx.fillRect(0,boss.y-35,W,70);
+    ctx.globalAlpha=1;
+  }
 }
 
 function drawParticles() {
-  for (const p of particles) {
-    ctx.globalAlpha = p.life;
-    ctx.fillStyle = p.color;
+  for(const p of particles){
+    ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.color;
+    ctx.shadowColor=p.color;
+    ctx.shadowBlur=10;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
     ctx.fill();
   }
 
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha=1;
+  ctx.shadowBlur=0;
 }
 
-function drawOverlay(title, subtitle) {
-  ctx.fillStyle = "#050916cc";
-  ctx.fillRect(0, 0, W, H);
+function drawHUD() {
+  ctx.font="bold 17px Orbitron";
+  ctx.fillStyle="white";
+  ctx.shadowColor="#000";
+  ctx.shadowBlur=8;
+  ctx.fillText("SCORE "+Math.floor(score),20,35);
+  ctx.shadowBlur=0;
 
-  ctx.textAlign = "center";
+  let y=65;
 
-  ctx.shadowColor = "#359dff";
-  ctx.shadowBlur = 25;
+  const names={
+    shield:"🛡️ ЩИТ",
+    magnet:"🧲 МАГНИТ",
+    slow:"⏳ SLOW",
+    double:"✨ X2"
+  };
 
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 48px Segoe UI";
-  ctx.fillText(title, W / 2, H / 2 - 20);
+  for(const key in activePowers){
+    if(activePowers[key]>0){
+      ctx.fillStyle="#71eaff";
+      ctx.font="13px Rajdhani";
+      ctx.fillText(names[key]+" "+Math.ceil(activePowers[key]/60)+"s",20,y);
+      y+=21;
+    }
+  }
 
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#a9c6ed";
-  ctx.font = "20px Segoe UI";
-  ctx.fillText(subtitle, W / 2, H / 2 + 35);
+  if(boss){
+    ctx.font="bold 13px Orbitron";
+    ctx.fillStyle="#ff75ae";
+    ctx.fillText("BOSS BATTLE",W-150,30);
+  }
+}
 
-  ctx.textAlign = "left";
+function overlay(title,subtitle) {
+  ctx.fillStyle="#040817d9";
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign="center";
+
+  ctx.shadowColor="#47caff";
+  ctx.shadowBlur=30;
+  ctx.fillStyle="white";
+  ctx.font="bold 48px Orbitron";
+  ctx.fillText(title,W/2,H/2-25);
+
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#a9c9e8";
+  ctx.font="22px Rajdhani";
+  ctx.fillText(subtitle,W/2,H/2+25);
+
+  ctx.textAlign="left";
 }
 
 function draw() {
   drawBackground();
   drawObstacles();
   drawGems();
+  drawPowerups();
+  drawBoss();
   drawParticles();
   drawBall();
+  drawHUD();
 
-  if (!started && !gameOver) {
-    drawOverlay("NEON BALL", "Нажми НАЧАТЬ, чтобы играть");
+  if(!started&&!gameOver){
+    overlay("NEON BALL","Нажми ИГРАТЬ, чтобы начать");
   }
 
-  if (paused) {
-    drawOverlay("ПАУЗА", "Нажми ПРОБЕЛ или продолжить");
+  if(paused){
+    overlay("PAUSED","Нажми ПРОБЕЛ или ИГРАТЬ");
   }
 
-  if (gameOver) {
-    drawOverlay("GAME OVER", "Счёт: " + Math.floor(score) + " · Нажми НАЧАТЬ");
+  if(gameOver){
+    overlay("GAME OVER","Счёт: "+Math.floor(score)+" · Нажми ИГРАТЬ");
   }
-
-  ctx.fillStyle = "#ffffff99";
-  ctx.font = "13px Segoe UI";
-  ctx.fillText("SPEED " + speed.toFixed(1), W - 115, 25);
 }
+
+/* =====================================
+   HUD AND END
+===================================== */
+
+function updateHUD() {
+  best=Math.max(best,Math.floor(score));
+
+  $("score").textContent=Math.floor(score);
+  $("best").textContent=best;
+  $("lives").textContent=lives;
+  $("speed").textContent=speed.toFixed(1)+"x";
+
+  if(score>=(data.best[data.difficulty]||0)){
+    data.best[data.difficulty]=Math.floor(score);
+  }
+}
+
+function endGame() {
+  gameOver=true;
+  running=false;
+  pressing=false;
+
+  data.totalScore+=Math.floor(score);
+  data.totalTime+=Math.floor(gameTime);
+
+  if(score>(data.best[data.difficulty]||0)){
+    data.best[data.difficulty]=Math.floor(score);
+  }
+
+  if(data.selectedMode==="zen"){
+    data.totalScore+=Math.floor(score);
+  }
+
+  checkAchievements();
+  save();
+  stopMusic();
+  tone(120,.6,"sawtooth");
+  updateHUD();
+}
+
+/* =====================================
+   ACHIEVEMENTS
+===================================== */
+
+function checkAchievements() {
+  for(const a of achievements){
+    if(a.check()&&!data.achievements.includes(a.id)){
+      data.achievements.push(a.id);
+      data.coins+=a.reward;
+      data.totalCoins+=a.reward;
+      toast("🏆 "+a.name+" · +"+a.reward+" 💎");
+      tone(900,.3);
+      save();
+    }
+  }
+}
+
+function openAchievements() {
+  const box=$("achievementList");
+  box.innerHTML="";
+
+  achievements.forEach(a=>{
+    const unlocked=data.achievements.includes(a.id);
+
+    const el=document.createElement("div");
+    el.className="achievement"+(unlocked?"":" locked");
+
+    el.innerHTML=`
+      <div class="achievement-icon">${unlocked?a.icon:"🔒"}</div>
+      <div style="flex:1">
+        <strong>${a.name}</strong>
+        <small>${a.desc}</small>
+        <small>Награда: ${a.reward} 💎</small>
+      </div>
+      <strong>${unlocked?"✓":"..."}</strong>
+    `;
+
+    box.appendChild(el);
+  });
+
+  openModal("achievementModal");
+}
+
+/* =====================================
+   SHOP
+===================================== */
+
+function openShop() {
+  const box=$("shopCards");
+  box.innerHTML="";
+
+  skins.forEach(s=>{
+    const owned=data.ownedSkins.includes(s.id);
+    const selected=data.selectedSkin===s.id;
+
+    const card=document.createElement("div");
+    card.className="item-card"+(selected?" selected":"");
+
+    card.innerHTML=`
+      <div class="skin-preview" style="color:${s.color}">${s.emoji}</div>
+      <h3>${s.name}</h3>
+      <p>${owned?"Уже приобретён":s.price+" 💎"}</p>
+      <button ${selected?"disabled":""}>
+        ${selected?"ВЫБРАН":owned?"ВЫБРАТЬ":"КУПИТЬ"}
+      </button>
+    `;
+
+    card.querySelector("button").onclick=()=>{
+      if(owned){
+        data.selectedSkin=s.id;
+        save();
+        openShop();
+        tone(600,.1);
+      }else if(data.coins>=s.price){
+        data.coins-=s.price;
+        data.ownedSkins.push(s.id);
+        data.selectedSkin=s.id;
+        save();
+        openShop();
+        toast("✨ СКИН ПРИОБРЕТЁН!");
+      }else{
+        toast("Недостаточно кристаллов!");
+      }
+    };
+
+    box.appendChild(card);
+  });
+
+  openModal("shopModal");
+}
+
+/* =====================================
+   WORLDS AND MODES
+===================================== */
+
+function renderWorlds() {
+  const box=$("worldCards");
+  box.innerHTML="";
+
+  worlds.forEach(w=>{
+    const card=document.createElement("div");
+    card.className="item-card"+(data.selectedWorld===w.id?" selected":"");
+
+    card.innerHTML=`
+      <div class="skin-preview">${w.emoji}</div>
+      <h3>${w.name}</h3>
+      <p>${w.description}</p>
+      <button>${data.selectedWorld===w.id?"ВЫБРАН":"ВЫБРАТЬ"}</button>
+    `;
+
+    card.querySelector("button").onclick=()=>{
+      data.selectedWorld=w.id;
+      save();
+      renderWorlds();
+      draw();
+      toast("🌌 МИР ИЗМЕНЁН");
+    };
+
+    box.appendChild(card);
+  });
+}
+
+function renderModes() {
+  const box=$("modeCards");
+  box.innerHTML="";
+
+  modes.forEach(m=>{
+    const unlocked=!m.secret||data.totalGames>=3;
+    const card=document.createElement("div");
+
+    card.className="item-card"+(data.selectedMode===m.id?" selected":"");
+
+    card.innerHTML=`
+      <div class="skin-preview">${unlocked?m.emoji:"🔒"}</div>
+      <h3>${m.name}</h3>
+      <p>${unlocked?m.description:"Откроется после 3 игр"}</p>
+      <button ${!unlocked?"disabled":""}>
+        ${data.selectedMode===m.id?"ВЫБРАН":"ВЫБРАТЬ"}
+      </button>
+    `;
+
+    card.querySelector("button").onclick=()=>{
+      if(!unlocked)return;
+
+      data.selectedMode=m.id;
+      save();
+      renderModes();
+      resetGame();
+      toast("🎮 РЕЖИМ ИЗМЕНЁН");
+    };
+
+    box.appendChild(card);
+  });
+}
+
+/* =====================================
+   POWERUP INFO
+===================================== */
+
+function renderPowers() {
+  const powers=[
+    ["🛡️","ЩИТ","Защищает от одного столкновения."],
+    ["🧲","МАГНИТ","Притягивает ближайшие кристаллы."],
+    ["⏳","ЗАМЕДЛЕНИЕ","Временно замедляет игру."],
+    ["✨","УДВОЕНИЕ","Удваивает очки и монеты."]
+  ];
+
+  $("powerInfo").innerHTML=powers.map(p=>`
+    <div class="achievement">
+      <div class="achievement-icon">${p[0]}</div>
+      <div>
+        <strong>${p[1]}</strong>
+        <small>${p[2]}</small>
+      </div>
+    </div>
+  `).join("")+`
+    <p style="color:#8ba2c4;margin-top:12px">
+      Бонусы появляются случайным образом во время игры.
+      Собирай их, чтобы получить преимущество!
+    </p>
+  `;
+}
+
+/* =====================================
+   STATISTICS
+===================================== */
+
+function openStats() {
+  const stats=[
+    ["🎮","Сыграно игр",data.totalGames],
+    ["💎","Всего заработано",data.totalCoins],
+    ["🏆","Достижения",data.achievements.length+"/"+achievements.length],
+    ["📈","Общий счёт",data.totalScore],
+    ["⏱️","Время игры",Math.floor(data.totalTime/60)+" мин"],
+    ["👾","Победы над боссами","За текущую игру: "+bossKills]
+  ];
+
+  $("statsCards").innerHTML=stats.map(s=>`
+    <div class="item-card">
+      <div class="skin-preview">${s[0]}</div>
+      <h3>${s[2]}</h3>
+      <p>${s[1]}</p>
+    </div>
+  `).join("");
+
+  openModal("statsModal");
+}
+
+/* =====================================
+   MODALS
+===================================== */
+
+function openModal(id) {
+  closeModals();
+  $(id).classList.add("open");
+}
+
+function closeModals() {
+  document.querySelectorAll(".modal").forEach(m=>m.classList.remove("open"));
+}
+
+document.querySelectorAll(".modal").forEach(modal=>{
+  modal.addEventListener("click",e=>{
+    if(e.target===modal)closeModals();
+  });
+});
+
+/* =====================================
+   SETTINGS
+===================================== */
+
+function saveSettings() {
+  data.settings.sound=$("sound").checked;
+  data.settings.music=$("music").checked;
+  data.settings.particles=$("particlesToggle").checked;
+  data.settings.hints=$("hints").checked;
+
+  save();
+
+  if(data.settings.music)startMusic();
+  else stopMusic();
+
+  document.querySelector(".hint").style.display=
+    data.settings.hints?"block":"none";
+}
+
+function loadSettings() {
+  $("difficulty").value=data.difficulty;
+  $("sound").checked=data.settings.sound;
+  $("music").checked=data.settings.music;
+  $("particlesToggle").checked=data.settings.particles;
+  $("hints").checked=data.settings.hints;
+
+  saveSettings();
+}
+
+function changeDifficulty(value) {
+  data.difficulty=value;
+  save();
+  resetGame();
+  toast("⚙️ СЛОЖНОСТЬ ИЗМЕНЕНА");
+}
+
+function resetProgress() {
+  if(!confirm("Точно удалить весь прогресс? Это действие нельзя отменить."))return;
+
+  localStorage.removeItem(STORAGE);
+  location.reload();
+}
+
+/* =====================================
+   HELP AND TOASTS
+===================================== */
+
+let toastTimer;
+
+function toast(message) {
+  const el=$("toast");
+  el.textContent=message;
+  el.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer=setTimeout(()=>{
+    el.classList.remove("show");
+  },2200);
+}
+
+function showHelp() {
+  alert(
+`NEON BALL — VERSION 1.0
+
+УПРАВЛЕНИЕ:
+SPACE / МЫШЬ / КАСАНИЕ — поднимать мяч.
+Кнопка ПАУЗА — остановить игру.
+
+ЦЕЛЬ:
+Уклоняйся от препятствий.
+Собирай кристаллы.
+Подбирай бонусы.
+Побеждай боссов.
+
+МАГАЗИН:
+Покупай новые скины.
+
+СЕКРЕТЫ:
+После 3 игр откроются дополнительные режимы.
+
+УДАЧИ!`
+  );
+}
+
+/* =====================================
+   INPUT
+===================================== */
+
+window.addEventListener("keydown",e=>{
+  if(e.code==="Space"){
+    e.preventDefault();
+
+    if(gameOver)return;
+
+    if(!started)startGame();
+    else if(paused)togglePause();
+    else pressing=true;
+  }
+
+  if(e.code==="Escape"){
+    if(started&&!gameOver)togglePause();
+    else closeModals();
+  }
+});
+
+window.addEventListener("keyup",e=>{
+  if(e.code==="Space")pressing=false;
+});
+
+canvas.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+
+  if(!started&&!gameOver)startGame();
+
+  if(running&&!paused)pressing=true;
+});
+
+window.addEventListener("pointerup",()=>{
+  pressing=false;
+});
+
+window.addEventListener("blur",()=>{
+  pressing=false;
+
+  if(running&&started&&!gameOver){
+    paused=true;
+    running=false;
+  }
+});
+
+/* =====================================
+   MAIN LOOP
+===================================== */
 
 function loop() {
   update();
@@ -722,76 +2075,18 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-// Управление
-window.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    e.preventDefault();
+/* =====================================
+   START
+===================================== */
 
-    if (gameOver) return;
-
-    if (!started) startGame();
-    else if (paused) {
-      paused = false;
-      $("pause").textContent = "⏸ ПАУЗА";
-    } else pressing = true;
-  }
-});
-
-window.addEventListener("keyup", e => {
-  if (e.code === "Space") pressing = false;
-});
-
-canvas.addEventListener("pointerdown", e => {
-  e.preventDefault();
-
-  if (!started && !gameOver) startGame();
-  if (running && !paused) pressing = true;
-});
-
-window.addEventListener("pointerup", () => {
-  pressing = false;
-});
-
-$("start").addEventListener("click", startGame);
-
-$("restart").addEventListener("click", resetGame);
-
-$("pause").addEventListener("click", () => {
-  if (!started || gameOver) return;
-
-  paused = !paused;
-  pressing = false;
-
-  $("pause").textContent = paused ? "▶ ПРОДОЛЖИТЬ" : "⏸ ПАУЗА";
-});
-
-$("difficulty").addEventListener("change", e => {
-  difficulty = e.target.value;
-  config = settings[difficulty];
-  resetGame();
-});
-
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-    this.beginPath();
-    this.moveTo(x + r, y);
-    this.lineTo(x + w - r, y);
-    this.quadraticCurveTo(x + w, y, x + w, y + r);
-    this.lineTo(x + w, y + h - r);
-    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    this.lineTo(x + r, y + h);
-    this.quadraticCurveTo(x, y + h, x, y + h - r);
-    this.lineTo(x, y + r);
-    this.quadraticCurveTo(x, y, x + r, y);
-    this.closePath();
-    return this;
-  };
-}
-
+createStars();
+renderWorlds();
+renderModes();
+renderPowers();
+loadSettings();
 resetGame();
 loop();
 
-})();
 </script>
 </body>
 </html>
