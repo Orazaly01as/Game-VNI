@@ -3,2071 +3,1232 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEON BALL — Version 1.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#070b18">
+<title>BOUNCE HARDCORE 0.2</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap');
-
 :root {
-  --bg:#080b18;
-  --panel:#111a30;
-  --panel2:#172541;
-  --line:#30466f;
-  --cyan:#52e5ff;
-  --blue:#468cff;
-  --purple:#a16cff;
-  --pink:#ff548d;
-  --gold:#ffda70;
-  --text:#e9f5ff;
-  --muted:#8195b8;
+  --bg: #070b18;
+  --panel: rgba(13, 22, 43, .96);
+  --cyan: #36eaff;
+  --blue: #537bff;
+  --purple: #a56bff;
+  --text: #edf5ff;
+  --muted: #8b9bb8;
 }
 
 * {
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  user-select:none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-body {
-  min-height:100vh;
-  background:
-    radial-gradient(ellipse at 50% 0%,#1a3157 0%,transparent 50%),
-    radial-gradient(ellipse at 90% 90%,#24133d 0%,transparent 45%),
-    var(--bg);
-  color:var(--text);
-  font-family:'Rajdhani',sans-serif;
-  display:flex;
-  justify-content:center;
-  padding:22px 12px;
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  touch-action: none;
+  user-select: none;
 }
 
-button,select {
-  font:inherit;
+button, select {
+  font: inherit;
 }
 
 button {
-  color:var(--text);
-  background:linear-gradient(135deg,#263e68,#172b4e);
-  border:1px solid #46638f;
-  border-radius:10px;
-  padding:10px 15px;
-  font-weight:700;
-  font-size:15px;
-  cursor:pointer;
-  transition:.15s;
-}
-
-button:hover:not(:disabled) {
-  border-color:var(--cyan);
-  filter:brightness(1.25);
-  transform:translateY(-1px);
+  color: white;
+  border: 1px solid rgba(92, 190, 255, .3);
+  background: linear-gradient(135deg, #172b50, #17203b);
+  border-radius: 12px;
+  padding: 11px 15px;
+  cursor: pointer;
 }
 
 button:active {
-  transform:scale(.97);
+  transform: scale(.97);
+}
+
+button.primary {
+  background: linear-gradient(120deg, #087eae, #5147c9);
+  border-color: #56dcff;
 }
 
 button:disabled {
-  opacity:.35;
-  cursor:not-allowed;
+  opacity: .4;
 }
 
-.primary {
-  background:linear-gradient(135deg,#087eae,#315de0);
-  border-color:#65dfff;
-  box-shadow:0 0 18px #269fff35;
+#gameRoot {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 30%, #17264a 0%, #090f20 55%, #050812 100%);
 }
 
-.gold {
-  background:linear-gradient(135deg,#9b681c,#665019);
-  border-color:#e5c26b;
+#gameCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
-.danger {
-  background:linear-gradient(135deg,#85294a,#451a3c);
-  border-color:#e65c88;
+#hud {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 5;
 }
 
-.app {
-  width:min(1050px,100%);
+.hud-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
-.topbar {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:15px;
-  margin-bottom:16px;
-  flex-wrap:wrap;
+.hud-card {
+  background: rgba(5, 13, 30, .75);
+  border: 1px solid rgba(74, 197, 255, .25);
+  border-radius: 12px;
+  padding: 8px 12px;
+  backdrop-filter: blur(8px);
+  min-width: 75px;
 }
 
-.brand {
-  font-family:'Orbitron',sans-serif;
-  font-size:clamp(22px,4vw,34px);
-  font-weight:900;
-  letter-spacing:3px;
-  color:var(--cyan);
-  text-shadow:0 0 18px #35bfff88;
+.hud-label {
+  font-size: 10px;
+  color: #8da9cb;
+  letter-spacing: 1px;
 }
 
-.brand span {
-  color:white;
+.hud-value {
+  font-size: 19px;
+  font-weight: bold;
+  color: var(--cyan);
+  margin-top: 2px;
 }
 
-.version {
-  font-family:'Orbitron',sans-serif;
-  font-size:10px;
-  letter-spacing:1px;
-  color:var(--cyan);
-  border:1px solid #32718b;
-  background:#12283c;
-  padding:6px 10px;
-  border-radius:30px;
-  margin-top:5px;
-  display:inline-block;
+#menuButton {
+  pointer-events: auto;
+  font-size: 20px;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  background: rgba(8, 20, 42, .9);
 }
 
-.top-right {
-  display:flex;
-  gap:9px;
-  align-items:center;
-  flex-wrap:wrap;
+#version {
+  position: absolute;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  right: max(12px, env(safe-area-inset-right));
+  color: rgba(174, 210, 255, .5);
+  font-size: 11px;
+  z-index: 4;
 }
 
-.currency {
-  background:#1b2741;
-  border:1px solid #4a6086;
-  padding:9px 14px;
-  border-radius:10px;
-  color:var(--gold);
-  font-weight:700;
+#status {
+  position: absolute;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 14px;
+  border-radius: 20px;
+  background: rgba(7, 15, 34, .75);
+  border: 1px solid rgba(77, 188, 255, .2);
+  font-size: 12px;
+  color: #b9d8ff;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
-.gamebox {
-  background:linear-gradient(145deg,#111a30,#0b1020);
-  border:1px solid #34496d;
-  padding:14px;
-  border-radius:19px;
-  box-shadow:0 20px 65px #0009,inset 0 0 30px #263b641c;
-  position:relative;
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+  background: rgba(3, 7, 18, .7);
+  backdrop-filter: blur(8px);
+  z-index: 10;
 }
 
-canvas {
-  display:block;
-  width:100%;
-  height:auto;
-  background:#080e20;
-  border:1px solid #31456c;
-  border-radius:12px;
-  touch-action:none;
-  cursor:pointer;
+.hidden {
+  display: none !important;
 }
 
-.hud {
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:9px;
-  margin-top:12px;
+.dialog {
+  width: min(440px, 95vw);
+  max-height: 90%;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid rgba(63, 202, 255, .35);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 0 55px rgba(34, 130, 255, .17);
+  text-align: center;
+  touch-action: pan-y;
 }
 
-.stat {
-  background:var(--panel2);
-  border:1px solid #34496b;
-  border-radius:10px;
-  text-align:center;
-  padding:9px 4px;
+.logo {
+  font-size: clamp(25px, 5vw, 40px);
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(90deg, #36eaff, #8e7aff, #36eaff);
+  color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
 }
 
-.stat small {
-  display:block;
-  font-size:11px;
-  color:var(--muted);
-  letter-spacing:1px;
+.subtitle {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 20px;
 }
 
-.stat strong {
-  font-family:'Orbitron',sans-serif;
-  font-size:19px;
-  color:white;
+.dialog h2 {
+  font-size: 22px;
+  margin-bottom: 12px;
 }
 
-.stat.gold-stat strong {color:var(--gold)}
-.stat.cyan-stat strong {color:var(--cyan)}
-.stat.pink-stat strong {color:#ff83a6}
-
-.game-controls {
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:12px;
+.dialog h3 {
+  font-size: 15px;
+  margin: 16px 0 8px;
+  text-align: left;
+  color: #a9dfff;
 }
 
-.game-controls button {
-  flex:1;
-  min-width:100px;
+.main-buttons {
+  display: grid;
+  gap: 10px;
 }
 
-.hint {
-  text-align:center;
-  color:var(--muted);
-  font-size:13px;
-  margin-top:12px;
-  letter-spacing:1px;
+.main-buttons button {
+  min-height: 46px;
+  font-weight: bold;
 }
 
-.menu-grid {
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  margin-top:16px;
+.menu-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin: 12px 0 16px;
+  padding-bottom: 5px;
 }
 
-.menu-button {
-  padding:14px 5px;
-  text-align:center;
-  font-size:14px;
+.menu-tabs button {
+  flex: 1;
+  min-width: 75px;
+  padding: 9px 8px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
-.menu-button span {
-  display:block;
-  font-size:23px;
-  margin-bottom:5px;
+.menu-tabs button.active {
+  border-color: var(--cyan);
+  background: #16446a;
 }
 
-.section {
-  margin-top:17px;
-  padding:15px;
-  border:1px solid #2c4267;
-  background:#111a2d;
-  border-radius:13px;
+.menu-content {
+  text-align: left;
+  min-height: 150px;
 }
 
-.section-title {
-  font-family:'Orbitron',sans-serif;
-  font-size:13px;
-  letter-spacing:1px;
-  color:var(--cyan);
-  margin-bottom:12px;
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(135, 174, 225, .12);
+  font-size: 13px;
 }
 
-.bottom-info {
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-  color:#778cad;
-  font-size:12px;
-  margin-top:14px;
+.setting-row select {
+  background: #111d36;
+  color: white;
+  border: 1px solid #38577e;
+  border-radius: 9px;
+  padding: 8px;
+  max-width: 150px;
 }
 
-/* MODALS */
-
-.modal {
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:10;
-  background:#020510df;
-  backdrop-filter:blur(8px);
-  align-items:center;
-  justify-content:center;
-  padding:15px;
+.setting-row input {
+  accent-color: var(--cyan);
+  width: 20px;
+  height: 20px;
 }
 
-.modal.open {
-  display:flex;
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
 }
 
-.modal-content {
-  width:min(720px,100%);
-  max-height:85vh;
-  overflow-y:auto;
-  background:linear-gradient(145deg,#15223c,#0d1427);
-  border:1px solid #42608d;
-  border-radius:17px;
-  padding:20px;
-  box-shadow:0 20px 80px #000;
+.skin {
+  padding: 12px 8px;
+  border: 1px solid rgba(130, 180, 240, .2);
+  border-radius: 12px;
+  background: rgba(20, 35, 65, .7);
+  text-align: center;
 }
 
-.modal-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  margin-bottom:18px;
+.skin.selected {
+  border-color: var(--cyan);
+  box-shadow: 0 0 15px rgba(54, 234, 255, .2);
 }
 
-.modal-header h2 {
-  font-family:'Orbitron',sans-serif;
-  font-size:18px;
-  color:var(--cyan);
+.skin-dot {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  margin: 0 auto 7px;
+  box-shadow: 0 0 15px currentColor;
 }
 
-.close {
-  padding:5px 12px;
-  font-size:20px;
+.skin button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px;
+  font-size: 11px;
 }
 
-.cards {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
-  gap:11px;
-}
-
-.item-card {
-  background:#1a2945;
-  border:1px solid #344d76;
-  border-radius:12px;
-  padding:13px;
-  text-align:center;
-}
-
-.item-card.selected {
-  border-color:var(--cyan);
-  box-shadow:0 0 15px #36dfff33;
-}
-
-.skin-preview {
-  height:65px;
-  display:grid;
-  place-items:center;
-  font-size:42px;
-  filter:drop-shadow(0 0 12px currentColor);
-}
-
-.item-card h3 {
-  font-size:16px;
-  margin:6px 0;
-}
-
-.item-card p {
-  color:var(--muted);
-  font-size:13px;
-  margin-bottom:10px;
-}
-
-.item-card button {
-  width:100%;
-  font-size:13px;
-  padding:8px;
-}
-
-.achievement {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px;
-  background:#1a2945;
-  border:1px solid #344d76;
-  border-radius:10px;
-  margin-bottom:8px;
-}
-
-.achievement.locked {
-  opacity:.45;
-}
-
-.achievement-icon {
-  font-size:27px;
-}
-
-.achievement small {
-  color:var(--muted);
-  display:block;
+.mission {
+  padding: 12px;
+  background: rgba(29, 47, 79, .5);
+  border-radius: 12px;
+  margin-bottom: 9px;
+  font-size: 13px;
 }
 
 .progress {
-  height:6px;
-  background:#263653;
-  border-radius:10px;
-  overflow:hidden;
-  margin-top:7px;
+  height: 6px;
+  background: #263650;
+  border-radius: 10px;
+  margin-top: 8px;
+  overflow: hidden;
 }
 
-.progress div {
-  height:100%;
-  background:var(--cyan);
-  width:0;
+.progress > div {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
 }
 
-.settings-row {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  padding:12px 0;
-  border-bottom:1px solid #293d5e;
+#portraitScreen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  z-index: 30;
+  background: radial-gradient(circle, #17284d, #050914 75%);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 25px;
 }
 
-.settings-row select {
-  background:#1c2c4b;
-  border:1px solid #47618b;
-  color:white;
-  padding:8px;
-  border-radius:8px;
+.portrait-content {
+  max-width: 330px;
 }
 
-#toast {
-  position:fixed;
-  bottom:25px;
-  left:50%;
-  transform:translateX(-50%) translateY(30px);
-  opacity:0;
-  pointer-events:none;
-  z-index:30;
-  background:#162d49;
-  border:1px solid var(--cyan);
-  border-radius:10px;
-  padding:12px 20px;
-  box-shadow:0 0 25px #30bfff55;
-  transition:.3s;
-  text-align:center;
+.phone-icon {
+  font-size: 70px;
+  display: inline-block;
+  animation: rotatePhone 2s ease-in-out infinite;
+  margin-bottom: 22px;
 }
 
-#toast.show {
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
+@keyframes rotatePhone {
+  0%, 20% { transform: rotate(0deg); }
+  60%, 100% { transform: rotate(90deg); }
 }
 
-@media(max-width:600px) {
-  body {padding:10px 7px}
-  .gamebox {padding:7px}
-  .hud {grid-template-columns:repeat(3,1fr)}
-  .menu-grid {grid-template-columns:repeat(2,1fr)}
-  .stat strong {font-size:16px}
-  .brand {font-size:21px}
+#portraitScreen h2 {
+  margin-bottom: 10px;
+}
+
+#portraitScreen p {
+  color: #a6b9d8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+#portraitScreen button {
+  margin-top: 20px;
+}
+
+#pauseButton {
+  pointer-events: auto;
+}
+
+#mobileHint {
+  position: absolute;
+  bottom: 35px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(220, 240, 255, .65);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@media (orientation: portrait) and (max-width: 900px) {
+  #portraitScreen {
+    display: flex;
+  }
+}
+
+@media (max-height: 420px) {
+  .dialog {
+    padding: 15px;
+    max-height: 94%;
+  }
+  .logo {
+    font-size: 25px;
+  }
+  .subtitle {
+    margin-bottom: 10px;
+  }
 }
 </style>
 </head>
 
 <body>
+<div id="gameRoot">
 
-<div class="app">
+  <canvas id="gameCanvas"></canvas>
 
-  <header class="topbar">
-    <div>
-      <div class="brand">NEON <span>BALL</span></div>
-      <div class="version">VERSION 1.0 · FULL EDITION</div>
-    </div>
-
-    <div class="top-right">
-      <div class="currency">💎 <span id="currency">0</span></div>
-      <button onclick="openModal('settingsModal')">⚙️</button>
-    </div>
-  </header>
-
-  <main class="gamebox">
-
-    <canvas id="game" width="900" height="540"></canvas>
-
-    <div class="hud">
-      <div class="stat cyan-stat">
-        <small>СЧЁТ</small>
-        <strong id="score">0</strong>
+  <div id="hud">
+    <div class="hud-group">
+      <div class="hud-card">
+        <div class="hud-label">СЧЁТ</div>
+        <div class="hud-value" id="score">0</div>
       </div>
-
-      <div class="stat gold-stat">
-        <small>РЕКОРД</small>
-        <strong id="best">0</strong>
+      <div class="hud-card">
+        <div class="hud-label">РЕКОРД</div>
+        <div class="hud-value" id="best">0</div>
       </div>
-
-      <div class="stat pink-stat">
-        <small>ЖИЗНИ</small>
-        <strong id="lives">3</strong>
-      </div>
-
-      <div class="stat">
-        <small>💎 МОНЕТЫ</small>
-        <strong id="gems">0</strong>
-      </div>
-
-      <div class="stat">
-        <small>⚡ СКОРОСТЬ</small>
-        <strong id="speed">1.0x</strong>
+      <div class="hud-card">
+        <div class="hud-label">МОНЕТЫ</div>
+        <div class="hud-value" id="coins">0</div>
       </div>
     </div>
 
-    <div class="game-controls">
-      <button class="primary" onclick="startGame()">▶ ИГРАТЬ</button>
-      <button onclick="togglePause()">⏸ ПАУЗА</button>
-      <button onclick="resetGame()">↻ ЗАНОВО</button>
+    <div class="hud-group">
+      <button id="pauseButton" title="Пауза">Ⅱ</button>
+      <button id="menuButton" title="Меню">☰</button>
     </div>
+  </div>
 
-    <div class="hint">
-      SPACE / МЫШЬ / КАСАНИЕ — УПРАВЛЕНИЕ МЯЧОМ
+  <div id="status">ГОТОВ К ЗАПУСКУ</div>
+  <div id="mobileHint">УДЕРЖИВАЙ ЭКРАН, ЧТОБЫ ПОДНИМАТЬ МЯЧ</div>
+  <div id="version">BOUNCE HARDCORE · v0.2</div>
+
+  <div class="overlay" id="startScreen">
+    <div class="dialog">
+      <div class="logo">BOUNCE HARDCORE</div>
+      <div class="subtitle">Аркадная игра на реакцию. Пройди препятствия, собирай монеты и побей свой рекорд.</div>
+      <div class="main-buttons">
+        <button class="primary" id="startButton">▶ НАЧАТЬ ИГРУ</button>
+        <button id="startMenuButton">☰ НАСТРОЙКИ И МЕНЮ</button>
+        <button id="fullscreenButton">⛶ ПОЛНЫЙ ЭКРАН</button>
+      </div>
+      <p class="subtitle" style="margin-top:15px;margin-bottom:0">
+        Управление: удерживай экран или Space.
+      </p>
     </div>
-  </main>
+  </div>
 
-  <section class="menu-grid">
-    <button class="menu-button" onclick="openShop()">
-      <span>🛒</span>МАГАЗИН
-    </button>
+  <div class="overlay hidden" id="gameOverScreen">
+    <div class="dialog">
+      <div class="logo">GAME OVER</div>
+      <h2>Игра окончена</h2>
+      <p class="subtitle">Твой результат:</p>
+      <div class="hud-value" style="font-size:42px" id="finalScore">0</div>
+      <p class="subtitle" id="recordMessage">Попробуй ещё раз!</p>
+      <div class="main-buttons">
+        <button class="primary" id="restartButton">↻ ИГРАТЬ СНОВА</button>
+        <button id="gameOverMenuButton">☰ МЕНЮ</button>
+      </div>
+    </div>
+  </div>
 
-    <button class="menu-button" onclick="openAchievements()">
-      <span>🏆</span>ДОСТИЖЕНИЯ
-    </button>
+  <div class="overlay hidden" id="menuScreen">
+    <div class="dialog">
+      <div class="logo" style="font-size:27px">ИГРОВОЙ ЦЕНТР</div>
+      <div class="menu-tabs">
+        <button class="active" data-tab="game">Игра</button>
+        <button data-tab="skins">Скины</button>
+        <button data-tab="missions">Задания</button>
+        <button data-tab="stats">Статистика</button>
+      </div>
 
-    <button class="menu-button" onclick="openStats()">
-      <span>📊</span>СТАТИСТИКА
-    </button>
+      <div class="menu-content" id="menuContent"></div>
 
-    <button class="menu-button" onclick="openModal('worldModal')">
-      <span>🌌</span>МИРЫ
-    </button>
+      <div class="main-buttons" style="margin-top:16px">
+        <button class="primary" id="resumeButton">▶ ПРОДОЛЖИТЬ</button>
+        <button id="menuRestartButton">↻ ПЕРЕЗАПУСТИТЬ</button>
+        <button id="closeMenuButton">ЗАКРЫТЬ МЕНЮ</button>
+      </div>
+    </div>
+  </div>
 
-    <button class="menu-button" onclick="openModal('modeModal')">
-      <span>🎮</span>РЕЖИМЫ
-    </button>
-
-    <button class="menu-button" onclick="openModal('powerModal')">
-      <span>⚡</span>СПОСОБНОСТИ
-    </button>
-
-    <button class="menu-button" onclick="openModal('settingsModal')">
-      <span>⚙️</span>НАСТРОЙКИ
-    </button>
-
-    <button class="menu-button" onclick="showHelp()">
-      <span>❔</span>ПОМОЩЬ
-    </button>
-  </section>
-
-  <div class="bottom-info">
-    <span>NEON BALL PROJECT</span>
-    <span>BUILD 1.0.0</span>
-    <span>© 2026</span>
+  <div id="portraitScreen">
+    <div class="portrait-content">
+      <div class="phone-icon">📱</div>
+      <h2>Поверни телефон</h2>
+      <p>Эта игра создана для горизонтального экрана. Поверни устройство боком, чтобы играть на весь экран.</p>
+      <button class="primary" id="portraitFullscreen">⛶ Попробовать полный экран</button>
+    </div>
   </div>
 
 </div>
-
-<!-- SHOP -->
-
-<div class="modal" id="shopModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>🛒 МАГАЗИН</h2>
-      <button class="close" onclick="closeModals()">×</button>
-    </div>
-
-    <p style="color:#91a8cb;margin-bottom:15px">
-      Покупай новые мячи за кристаллы.
-    </p>
-
-    <div class="cards" id="shopCards"></div>
-  </div>
-</div>
-
-<!-- ACHIEVEMENTS -->
-
-<div class="modal" id="achievementModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>🏆 ДОСТИЖЕНИЯ</h2>
-      <button class="close" onclick="closeModals()">×</button>
-    </div>
-
-    <div id="achievementList"></div>
-  </div>
-</div>
-
-<!-- STATS -->
-
-<div class="modal" id="statsModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>📊 СТАТИСТИКА</h2>
-      <button class="close" onclick="closeModals()">×</button>
-    </div>
-
-    <div class="cards" id="statsCards"></div>
-  </div>
-</div>
-
-<!-- WORLDS -->
-
-<div class="modal" id="worldModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>🌌 ВЫБОР МИРА</h2>
-      <button class="close" onclick="closeModals()">×</button>
-    </div>
-
-    <div class="cards" id="worldCards"></div>
-  </div>
-</div>
-
-<!-- MODES -->
-
-<div class="modal" id="modeModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>🎮 ИГРОВЫЕ РЕЖИМЫ</h2>
-      <button class="close" onclick="closeModals()">×</button>
-    </div>
-
-    <div class="cards" id="modeCards"></div>
-  </div>
-</div>
-
-<!-- POWERS -->
-
-<div class="modal" id="powerModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>⚡ СПОСОБНОСТИ</h2>
-      <button class="close" onclick="closeModals()">×</button>
-    </div>
-
-    <div id="powerInfo"></div>
-  </div>
-</div>
-
-<!-- SETTINGS -->
-
-<div class="modal" id="settingsModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>⚙️ НАСТРОЙКИ</h2>
-      <button class="close" onclick="closeModals()">×</button>
-    </div>
-
-    <div class="settings-row">
-      <span>Сложность</span>
-      <select id="difficulty" onchange="changeDifficulty(this.value)">
-        <option value="easy">Лёгкая</option>
-        <option value="normal" selected>Нормальная</option>
-        <option value="hard">Хардкор</option>
-      </select>
-    </div>
-
-    <div class="settings-row">
-      <span>Звуковые эффекты</span>
-      <input type="checkbox" id="sound" checked onchange="saveSettings()">
-    </div>
-
-    <div class="settings-row">
-      <span>Музыка</span>
-      <input type="checkbox" id="music" onchange="saveSettings()">
-    </div>
-
-    <div class="settings-row">
-      <span>Частицы</span>
-      <input type="checkbox" id="particlesToggle" checked onchange="saveSettings()">
-    </div>
-
-    <div class="settings-row">
-      <span>Показать подсказки</span>
-      <input type="checkbox" id="hints" checked onchange="saveSettings()">
-    </div>
-
-    <p style="color:#8297b8;font-size:13px;margin-top:15px">
-      Прогресс автоматически сохраняется в браузере.
-    </p>
-
-    <button class="danger" style="margin-top:20px;width:100%"
-      onclick="resetProgress()">СБРОСИТЬ ВЕСЬ ПРОГРЕСС</button>
-  </div>
-</div>
-
-<div id="toast"></div>
 
 <script>
 "use strict";
 
-/* =====================================
-   NEON BALL 1.0
-   GAME ENGINE
-===================================== */
+/* ==============================
+   BOUNCE HARDCORE 0.2
+   ============================== */
 
-const canvas = document.getElementById("game");
+const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const W = canvas.width;
-const H = canvas.height;
-const FLOOR = H - 12;
+const W = 900;
+const H = 520;
 
-const $ = id => document.getElementById(id);
+let scaleX = 1;
+let scaleY = 1;
 
-const STORAGE = "neonBall_full_v1";
+function resizeCanvas() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const rect = canvas.getBoundingClientRect();
 
-const DEFAULT_DATA = {
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+
+  scaleX = canvas.width / W;
+  scaleY = canvas.height / H;
+
+  ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+/* ---------- СОХРАНЕНИЯ ---------- */
+
+const defaultData = {
+  best: 0,
   coins: 0,
-  selectedSkin: "blue",
-  ownedSkins: ["blue"],
-  best: {},
-  achievements: [],
-  totalGames: 0,
   totalCoins: 0,
-  totalScore: 0,
-  totalTime: 0,
-  selectedWorld: "space",
-  selectedMode: "classic",
+  games: 0,
   difficulty: "normal",
-  settings: {
-    sound: true,
-    music: false,
-    particles: true,
-    hints: true
+  sound: true,
+  particles: true,
+  selectedSkin: "cyan",
+  skins: ["cyan"],
+  missionsClaimed: [],
+  totalScore: 0
+};
+
+function loadData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("bounceHardcore02"));
+    return saved ? { ...defaultData, ...saved } : { ...defaultData };
+  } catch {
+    return { ...defaultData };
+  }
+}
+
+let data = loadData();
+
+function saveData() {
+  try {
+    localStorage.setItem("bounceHardcore02", JSON.stringify(data));
+  } catch (e) {
+    console.warn("Не удалось сохранить прогресс", e);
+  }
+}
+
+/* ---------- НАСТРОЙКИ ---------- */
+
+const difficulties = {
+  easy: {
+    name: "Лёгкая",
+    gravity: 0.23,
+    lift: 0.48,
+    speed: 3.1,
+    gap: 190,
+    interval: 245
+  },
+  normal: {
+    name: "Обычная",
+    gravity: 0.29,
+    lift: 0.57,
+    speed: 4.0,
+    gap: 165,
+    interval: 225
+  },
+  hard: {
+    name: "Сложная",
+    gravity: 0.35,
+    lift: 0.65,
+    speed: 4.8,
+    gap: 145,
+    interval: 210
+  },
+  insane: {
+    name: "Безумная",
+    gravity: 0.40,
+    lift: 0.72,
+    speed: 5.5,
+    gap: 130,
+    interval: 195
   }
 };
 
-let data;
-
-try {
-  data = {
-    ...DEFAULT_DATA,
-    ...JSON.parse(localStorage.getItem(STORAGE) || "{}")
-  };
-
-  data.settings = {
-    ...DEFAULT_DATA.settings,
-    ...(data.settings || {})
-  };
-} catch {
-  data = structuredClone(DEFAULT_DATA);
-}
-
-function save() {
-  localStorage.setItem(STORAGE, JSON.stringify(data));
-  updateCurrency();
-}
-
-function updateCurrency() {
-  $("currency").textContent = data.coins;
-  $("gems").textContent = data.coins;
-}
-
-/* =====================================
-   CONFIGURATION
-===================================== */
-
-const difficulties = {
-  easy: {gravity:.30,lift:.87,speed:2.6,gap:155,lives:5},
-  normal: {gravity:.42,lift:1.15,speed:3.5,gap:130,lives:3},
-  hard: {gravity:.52,lift:1.32,speed:4.5,gap:108,lives:1}
+let settings = {
+  difficulty: data.difficulty,
+  sound: data.sound,
+  particles: data.particles
 };
 
-const skins = [
-  {id:"blue",name:"NEON BLUE",emoji:"🔵",color:"#4baaff",price:0},
-  {id:"fire",name:"FIREBALL",emoji:"🔴",color:"#ff543e",price:80},
-  {id:"toxic",name:"TOXIC",emoji:"🟢",color:"#75ff72",price:120},
-  {id:"purple",name:"PURPLE",emoji:"🟣",color:"#b16aff",price:160},
-  {id:"gold",name:"GOLD",emoji:"🟡",color:"#ffd65e",price:250},
-  {id:"ice",name:"ICE",emoji:"🔷",color:"#8df4ff",price:300},
-  {id:"dark",name:"VOID",emoji:"⚫",color:"#ad9aff",price:450},
-  {id:"rainbow",name:"RAINBOW",emoji:"🌈",color:"#ff78d2",price:700}
-];
+function difficulty() {
+  return difficulties[settings.difficulty];
+}
 
-const worlds = [
-  {id:"space",name:"КОСМОС",emoji:"🌌",description:"Звёзды и глубокий космос"},
-  {id:"cyber",name:"КИБЕРПАНК",emoji:"🌆",description:"Город будущего"},
-  {id:"volcano",name:"ВУЛКАН",emoji:"🌋",description:"Огненные оттенки"},
-  {id:"ice",name:"ЛЕДЯНОЙ МИР",emoji:"❄️",description:"Холодная атмосфера"}
-];
+/* ---------- ЗВУК ---------- */
 
-const modes = [
-  {id:"classic",name:"КЛАССИКА",emoji:"🎮",description:"Стандартное выживание"},
-  {id:"rush",name:"RUSH",emoji:"⚡",description:"Быстрое испытание"},
-  {id:"zen",name:"ZEN",emoji:"🧘",description:"Спокойная игра без препятствий",secret:true},
-  {id:"survival",name:"SURVIVAL",emoji:"💀",description:"Одна жизнь, максимальная скорость",secret:true}
-];
+let audioContext = null;
 
-const achievements = [
-  {id:"first",name:"Первый запуск",desc:"Сыграть первую игру",reward:10,icon:"🎮",check:()=>data.totalGames>=1},
-  {id:"score50",name:"Разминка",desc:"Набрать 50 очков",reward:15,icon:"⭐",check:()=>score>=50},
-  {id:"score100",name:"Сотня",desc:"Набрать 100 очков",reward:25,icon:"💯",check:()=>score>=100},
-  {id:"score300",name:"Профи",desc:"Набрать 300 очков",reward:50,icon:"🏅",check:()=>score>=300},
-  {id:"score500",name:"Легенда",desc:"Набрать 500 очков",reward:100,icon:"👑",check:()=>score>=500},
-  {id:"gems10",name:"Коллекционер",desc:"Собрать 10 кристаллов",reward:20,icon:"💎",check:()=>runGems>=10},
-  {id:"gems50",name:"Сокровища",desc:"Собрать 50 кристаллов за игру",reward:70,icon:"💰",check:()=>runGems>=50},
-  {id:"boss",name:"Победитель",desc:"Победить босса",reward:100,icon:"👾",check:()=>bossKills>=1},
-  {id:"games10",name:"Постоянный игрок",desc:"Сыграть 10 игр",reward:60,icon:"🎯",check:()=>data.totalGames>=10},
-  {id:"hard",name:"Без страха",desc:"Набрать 100 очков на хардкоре",reward:100,icon:"🔥",check:()=>difficulty==="hard"&&score>=100}
-];
-
-/* =====================================
-   GAME STATE
-===================================== */
-
-let config;
-let ball;
-let obstacles=[];
-let gems=[];
-let powerups=[];
-let particles=[];
-let stars=[];
-
-let score=0;
-let best=0;
-let lives=3;
-let runGems=0;
-let bossKills=0;
-let speed=1;
-let spawnTimer=0;
-let powerTimer=0;
-let frame=0;
-let gameTime=0;
-let boss=null;
-let bossTimer=0;
-
-let running=false;
-let paused=false;
-let started=false;
-let gameOver=false;
-let pressing=false;
-
-let activePowers={
-  shield:0,
-  magnet:0,
-  slow:0,
-  double:0
-};
-
-let hitCooldown=0;
-let gameStartTime=0;
-
-let audioCtx=null;
-let musicTimer=null;
-
-/* =====================================
-   AUDIO
-===================================== */
-
-function tone(freq=440,duration=.1,type="sine",volume=.035) {
-  if(!data.settings.sound)return;
+function sound(frequency = 440, duration = .08, type = "sine", volume = .06) {
+  if (!settings.sound) return;
 
   try {
-    audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
 
-    if(audioCtx.state==="suspended")audioCtx.resume();
+    if (audioContext.state === "suspended") audioContext.resume();
 
-    const oscillator=audioCtx.createOscillator();
-    const gain=audioCtx.createGain();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
 
-    oscillator.type=type;
-    oscillator.frequency.value=freq;
-    gain.gain.setValueAtTime(volume,audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(volume, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+      .001,
+      audioContext.currentTime + duration
+    );
 
     oscillator.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(audioContext.destination);
 
     oscillator.start();
-    oscillator.stop(audioCtx.currentTime+duration);
-  } catch {}
+    oscillator.stop(audioContext.currentTime + duration);
+  } catch (e) {
+    console.warn("Audio unavailable");
+  }
 }
 
-function startMusic() {
-  if(!data.settings.music || musicTimer)return;
+/* ---------- ИГРОВОЕ СОСТОЯНИЕ ---------- */
 
-  const notes=[220,277,330,277,196,247,294,247];
-  let i=0;
+let state = "menu";
+let score = 0;
+let runCoins = 0;
+let frame = 0;
+let worldSpeed = 4;
+let holding = false;
+let newRecord = false;
 
-  musicTimer=setInterval(()=>{
-    if(running&&!paused)tone(notes[i++%notes.length],.25,"triangle",.012);
-  },350);
+const ball = {
+  x: 170,
+  y: H / 2,
+  r: 15,
+  vy: 0,
+  shield: false,
+  shieldTime: 0,
+  slowTime: 0
+};
+
+let obstacles = [];
+let pickups = [];
+let particles = [];
+let stars = [];
+let lastObstacle = 0;
+let backgroundOffset = 0;
+
+for (let i = 0; i < 65; i++) {
+  stars.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    size: Math.random() * 2 + .4,
+    speed: Math.random() * .6 + .2,
+    alpha: Math.random() * .6 + .2
+  });
 }
 
-function stopMusic() {
-  clearInterval(musicTimer);
-  musicTimer=null;
+/* ---------- ИГРА ---------- */
+
+function startGame() {
+  score = 0;
+  runCoins = 0;
+  frame = 0;
+  worldSpeed = difficulty().speed;
+  obstacles = [];
+  pickups = [];
+  particles = [];
+  lastObstacle = 0;
+
+  ball.x = 170;
+  ball.y = H / 2;
+  ball.vy = 0;
+  ball.shield = false;
+  ball.shieldTime = 0;
+  ball.slowTime = 0;
+
+  newRecord = false;
+  state = "playing";
+  holding = false;
+
+  data.games++;
+  saveData();
+
+  hideOverlays();
+  updateHUD();
+  document.getElementById("status").textContent =
+    difficulty().name.toUpperCase();
+
+  sound(520, .12);
 }
 
-/* =====================================
-   INITIALIZATION
-===================================== */
+function endGame() {
+  if (state !== "playing") return;
 
-function createStars() {
-  stars=[];
+  state = "over";
+  holding = false;
 
-  for(let i=0;i<100;i++){
-    stars.push({
-      x:Math.random()*W,
-      y:Math.random()*H,
-      size:Math.random()*2+0.5,
-      speed:Math.random()*.5+.1
+  data.coins += runCoins;
+  data.totalCoins += runCoins;
+  data.totalScore += score;
+
+  if (score > data.best) {
+    data.best = score;
+    newRecord = true;
+  }
+
+  saveData();
+  updateHUD();
+  updateMissions();
+
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("recordMessage").textContent =
+    newRecord ? "🏆 НОВЫЙ РЕКОРД!" : "Ещё одна попытка — и получится!";
+
+  document.getElementById("gameOverScreen").classList.remove("hidden");
+  document.getElementById("status").textContent = "ИГРА ОКОНЧЕНА";
+
+  sound(130, .35, "sawtooth", .08);
+}
+
+function pauseGame() {
+  if (state === "playing") {
+    state = "paused";
+    holding = false;
+    document.getElementById("status").textContent = "ПАУЗА";
+  } else if (state === "paused") {
+    state = "playing";
+    document.getElementById("status").textContent =
+      difficulty().name.toUpperCase();
+  }
+}
+
+function hideOverlays() {
+  document.querySelectorAll(".overlay").forEach(el => {
+    el.classList.add("hidden");
+  });
+}
+
+/* ---------- ПРЕПЯТСТВИЯ ---------- */
+
+function spawnObstacle() {
+  const gap = Math.max(112, difficulty().gap - score * .45);
+  const center = 130 + Math.random() * 260;
+  const width = 65;
+
+  obstacles.push({
+    x: W + 30,
+    width,
+    gapY: center,
+    gap,
+    scored: false,
+    phase: Math.random() * Math.PI * 2,
+    movement: Math.random() > .55 ? 1 : 0
+  });
+
+  // Иногда появляются бонусы.
+  if (Math.random() < .42) {
+    const types = ["coin", "coin", "shield", "slow"];
+    const type = types[Math.floor(Math.random() * types.length)];
+
+    pickups.push({
+      x: W + 105,
+      y: center + (Math.random() - .5) * gap * .55,
+      type,
+      radius: type === "coin" ? 10 : 14,
+      taken: false,
+      phase: Math.random() * 6
     });
   }
 }
 
-function createBall() {
-  return {
-    x:145,
-    y:FLOOR-16,
-    vy:0,
-    r:16,
-    squash:1
-  };
+function obstacleRectangles(o) {
+  const gapTop = o.gapY - o.gap / 2;
+  const gapBottom = o.gapY + o.gap / 2;
+
+  return [
+    { x: o.x, y: 0, w: o.width, h: gapTop },
+    { x: o.x, y: gapBottom, w: o.width, h: H - gapBottom }
+  ];
 }
 
-function resetGame() {
-  config=difficulties[data.difficulty]||difficulties.normal;
+/* ---------- ЧАСТИЦЫ ---------- */
 
-  score=0;
-  lives=config.lives;
-  runGems=0;
-  bossKills=0;
-  speed=1;
-  spawnTimer=0;
-  powerTimer=0;
-  gameTime=0;
-  frame=0;
-  boss=null;
-  bossTimer=0;
-  hitCooldown=0;
+function createParticles(x, y, color, amount = 8) {
+  if (!settings.particles) return;
 
-  activePowers={
-    shield:0,
-    magnet:0,
-    slow:0,
-    double:0
-  };
-
-  ball=createBall();
-  obstacles=[];
-  gems=[];
-  powerups=[];
-  particles=[];
-
-  running=false;
-  paused=false;
-  started=false;
-  gameOver=false;
-  pressing=false;
-
-  best=data.best[data.difficulty]||0;
-
-  $("score").textContent="0";
-  $("best").textContent=best;
-  $("lives").textContent=lives;
-  $("speed").textContent="1.0x";
-
-  save();
-  draw();
-}
-
-function startGame() {
-  if(gameOver)resetGame();
-
-  if(!started) {
-    started=true;
-    running=true;
-    paused=false;
-    data.totalGames++;
-    gameStartTime=Date.now();
-    save();
-    tone(520,.15,"sine");
-    startMusic();
-  } else if(paused) {
-    paused=false;
-    running=true;
-  }
-}
-
-function togglePause() {
-  if(!started||gameOver)return;
-
-  paused=!paused;
-  running=!paused;
-  pressing=false;
-
-  tone(300,.1);
-}
-
-/* =====================================
-   PARTICLES
-===================================== */
-
-function burst(x,y,color,count=15) {
-  if(!data.settings.particles)return;
-
-  for(let i=0;i<count;i++){
-    const angle=Math.random()*Math.PI*2;
-    const velocity=Math.random()*4+1;
+  for (let i = 0; i < amount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 3 + 1;
 
     particles.push({
-      x,y,
-      vx:Math.cos(angle)*velocity,
-      vy:Math.sin(angle)*velocity,
-      life:1,
-      size:Math.random()*4+1,
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 35 + Math.random() * 20,
+      maxLife: 55,
+      size: Math.random() * 4 + 2,
       color
     });
   }
 }
 
-/* =====================================
-   SPAWNING
-===================================== */
+/* ---------- СКИНЫ ---------- */
 
-function spawnObstacle() {
-  const gap=Math.max(82,config.gap-Math.min(25,score/30));
-  const center=110+Math.random()*(H-220);
+const skins = [
+  { id: "cyan", name: "Неон", color: "#36eaff", price: 0 },
+  { id: "purple", name: "Фиолетовый", color: "#b56bff", price: 20 },
+  { id: "gold", name: "Золотой", color: "#ffd65a", price: 50 },
+  { id: "red", name: "Огненный", color: "#ff5e75", price: 80 },
+  { id: "green", name: "Изумруд", color: "#5cffaa", price: 120 },
+  { id: "white", name: "Призрак", color: "#ffffff", price: 180 }
+];
 
-  obstacles.push({
-    x:W+30,
-    w:22,
-    top:center-gap/2,
-    bottom:center+gap/2,
-    passed:false
-  });
+function currentSkin() {
+  return skins.find(s => s.id === data.selectedSkin) || skins[0];
+}
 
-  if(Math.random()<.7){
-    gems.push({
-      x:W+30,
-      y:center,
-      phase:Math.random()*6,
-      r:10
-    });
+/* ---------- ЗАДАНИЯ ---------- */
+
+const missions = [
+  {
+    id: "score10",
+    title: "Первый результат",
+    description: "Набери 10 очков за одну игру",
+    target: 10,
+    reward: 10,
+    check: () => data.best >= 10
+  },
+  {
+    id: "score50",
+    title: "На скорости",
+    description: "Набери 50 очков за одну игру",
+    target: 50,
+    reward: 30,
+    check: () => data.best >= 50
+  },
+  {
+    id: "coins20",
+    title: "Коллекционер",
+    description: "Собери 20 монет за всё время",
+    target: 20,
+    reward: 15,
+    check: () => data.totalCoins >= 20
+  },
+  {
+    id: "games10",
+    title: "Не сдавайся",
+    description: "Сыграй 10 партий",
+    target: 10,
+    reward: 25,
+    check: () => data.games >= 10
   }
+];
+
+function updateMissions() {
+  saveData();
 }
 
-function spawnPowerup() {
-  const types=["shield","magnet","slow","double"];
-  const type=types[Math.floor(Math.random()*types.length)];
+/* ---------- HUD ---------- */
 
-  powerups.push({
-    x:W+30,
-    y:100+Math.random()*(H-230),
-    type,
-    phase:0
-  });
+function updateHUD() {
+  document.getElementById("score").textContent = score;
+  document.getElementById("best").textContent = data.best;
+  document.getElementById("coins").textContent = data.coins + runCoins;
 }
 
-function spawnBoss() {
-  if(boss)return;
+/* ---------- СТОЛКНОВЕНИЯ ---------- */
 
-  boss={
-    x:W+80,
-    y:H/2,
-    hp:5,
-    maxHp:5,
-    phase:0,
-    attack:0,
-    warning:0,
-    active:false
-  };
+function circleRectCollision(cx, cy, radius, rect) {
+  const closestX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+  const closestY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
 
-  bossTimer=0;
-  toast("⚠️ ВНИМАНИЕ! ПОЯВИЛСЯ БОСС!");
-  tone(100,.5,"sawtooth");
+  const dx = cx - closestX;
+  const dy = cy - closestY;
+
+  return dx * dx + dy * dy < radius * radius;
 }
 
-function circleRect(cx,cy,r,rx,ry,rw,rh) {
-  const x=Math.max(rx,Math.min(cx,rx+rw));
-  const y=Math.max(ry,Math.min(cy,ry+rh));
-
-  return (cx-x)**2+(cy-y)**2<r*r;
-}
-
-/* =====================================
-   COLLISIONS
-===================================== */
-
-function damage() {
-  if(hitCooldown>0||gameOver)return;
-
-  if(activePowers.shield>0){
-    activePowers.shield=0;
-    hitCooldown=80;
-    burst(ball.x,ball.y,"#51eaff",25);
-    tone(850,.2);
-    toast("🛡️ ЩИТ СПАС ТЕБЯ!");
-    return;
-  }
-
-  lives--;
-  hitCooldown=110;
-  ball.vy=-5;
-
-  burst(ball.x,ball.y,"#ff527b",25);
-  tone(150,.25,"sawtooth");
-
-  if(lives<=0)endGame();
-
-  updateHUD();
-}
-
-function collectGem(g) {
-  runGems++;
-  const value=activePowers.double>0?2:1;
-
-  data.coins+=value;
-  data.totalCoins+=value;
-  score+=15*value;
-
-  burst(g.x,g.y,"#ffe06c",15);
-  tone(800,.1,"sine");
-
-  checkAchievements();
-  save();
-}
-
-function activatePower(type) {
-  activePowers[type]=600;
-
-  const names={
-    shield:"🛡️ ЩИТ",
-    magnet:"🧲 МАГНИТ",
-    slow:"⏳ ЗАМЕДЛЕНИЕ",
-    double:"✨ ДВОЙНЫЕ ОЧКИ"
-  };
-
-  toast(names[type]+" АКТИВИРОВАН!");
-  tone(700,.2,"triangle");
-}
-
-function updateBoss() {
-  if(!boss)return;
-
-  boss.phase+=.025;
-  boss.attack++;
-
-  boss.x+=(W-125-boss.x)*.025;
-  boss.y=H/2+Math.sin(boss.phase)*110;
-
-  if(boss.attack>130){
-    boss.warning=45;
-    boss.attack=0;
+function hitObstacle() {
+  if (ball.shield) {
+    ball.shield = false;
+    ball.shieldTime = 0;
+    ball.vy = -5;
+    createParticles(ball.x, ball.y, "#36eaff", 25);
+    sound(760, .2);
+    return false;
   }
 
-  if(boss.warning>0) {
-    boss.warning--;
-
-    if(boss.warning===1) {
-      // Игроку показывается визуальное предупреждение.
-      tone(180,.2,"sawtooth");
-    }
-  }
-
-  if(boss.hp<=0){
-    burst(boss.x,boss.y,"#ff5a9c",60);
-    boss=null;
-    bossKills++;
-    score+=100;
-    data.coins+=50;
-    data.totalCoins+=50;
-    toast("🏆 БОСС ПОБЕЖДЁН! +50 💎");
-    tone(950,.5);
-    checkAchievements();
-    save();
-  }
+  endGame();
+  return true;
 }
 
-/* =====================================
-   GAME UPDATE
-===================================== */
+/* ---------- ОБНОВЛЕНИЕ ---------- */
 
 function update() {
+  if (state !== "playing") return;
+
   frame++;
 
-  for(const s of stars){
-    s.x-=s.speed;
+  const d = difficulty();
+  const slow = ball.slowTime > 0 ? .55 : 1;
+  const speed = worldSpeed * slow;
 
-    if(s.x<0){
-      s.x=W;
-      s.y=Math.random()*H;
+  if (ball.slowTime > 0) ball.slowTime--;
+  if (ball.shieldTime > 0) {
+    ball.shieldTime--;
+    if (ball.shieldTime <= 0) ball.shield = false;
+  }
+
+  // Управление мячом.
+  ball.vy += d.gravity;
+
+  if (holding) {
+    ball.vy -= d.lift;
+    if (frame % 5 === 0) {
+      createParticles(ball.x - 12, ball.y + 8, currentSkin().color, 1);
     }
   }
 
-  if(!running||paused||gameOver)return;
+  ball.vy = Math.max(-6, Math.min(7, ball.vy));
+  ball.y += ball.vy;
 
-  gameTime+=1/60;
+  if (ball.y < ball.r || ball.y > H - ball.r) {
+    hitObstacle();
+    if (state !== "playing") return;
 
-  const timeScale=activePowers.slow>0?.5:1;
-  const currentSpeed=(config.speed+Math.min(4,score/200))*timeScale;
-
-  speed=currentSpeed/config.speed;
-
-  if(score<1000)score+=.08*(activePowers.double>0?2:1);
-
-  // Player
-
-  ball.vy+=config.gravity*timeScale;
-
-  if(pressing){
-    ball.vy-=config.lift*timeScale;
-    ball.vy=Math.max(-7,ball.vy);
+    ball.y = Math.max(ball.r, Math.min(H - ball.r, ball.y));
+    ball.vy *= -.4;
   }
 
-  ball.y+=ball.vy*timeScale;
+  // Скорость увеличивается постепенно.
+  worldSpeed = d.speed + Math.min(score * .035, 2.2);
 
-  if(ball.y+ball.r>FLOOR){
-    ball.y=FLOOR-ball.r;
-    ball.vy=-Math.abs(ball.vy)*.78;
-    ball.squash=.75;
+  if (frame - lastObstacle > Math.max(135, d.interval - score * .6)) {
+    spawnObstacle();
+    lastObstacle = frame;
   }
 
-  if(ball.y-ball.r<0){
-    ball.y=ball.r;
-    ball.vy=Math.abs(ball.vy)*.4;
-  }
+  // Препятствия.
+  for (const o of obstacles) {
+    o.x -= speed;
 
-  ball.squash+=(1-ball.squash)*.2;
-
-  if(hitCooldown>0)hitCooldown--;
-
-  for(const key in activePowers){
-    if(activePowers[key]>0)activePowers[key]--;
-  }
-
-  // Obstacles
-
-  if(data.selectedMode!=="zen"){
-    spawnTimer++;
-
-    const interval=data.selectedMode==="rush"?48:Math.max(45,90-score/25);
-
-    if(spawnTimer>interval){
-      spawnObstacle();
-      spawnTimer=0;
+    if (o.movement) {
+      o.gapY += Math.sin(frame * .025 + o.phase) * .65;
     }
 
-    for(let i=obstacles.length-1;i>=0;i--){
-      const o=obstacles[i];
-      o.x-=currentSpeed;
+    const gapLimit = o.gap / 2 + 8;
+    o.gapY = Math.max(gapLimit + 10, Math.min(H - gapLimit - 10, o.gapY));
 
-      if(!o.passed&&o.x+o.w<ball.x){
-        o.passed=true;
-        score+=5;
+    for (const rect of obstacleRectangles(o)) {
+      if (circleRectCollision(ball.x, ball.y, ball.r, rect)) {
+        if (hitObstacle()) return;
       }
+    }
 
-      if(
-        circleRect(ball.x,ball.y,ball.r,o.x,0,o.w,o.top)||
-        circleRect(ball.x,ball.y,ball.r,o.x,o.bottom,o.w,H-o.bottom)
-      )damage();
-
-      if(o.x+o.w<0)obstacles.splice(i,1);
+    if (!o.scored && o.x + o.width < ball.x) {
+      o.scored = true;
+      score++;
+      sound(650 + Math.min(score * 5, 250), .06);
+      createParticles(ball.x, ball.y, "#36eaff", 5);
     }
   }
 
-  // Gems
+  obstacles = obstacles.filter(o => o.x + o.width > -20);
 
-  for(let i=gems.length-1;i>=0;i--){
-    const g=gems[i];
-    g.x-=currentSpeed;
-    g.phase+=.08;
+  // Бонусы.
+  for (const p of pickups) {
+    p.x -= speed;
+    p.phase += .08;
 
-    let dx=ball.x-g.x;
-    let dy=ball.y-g.y;
+    const dy = ball.y - p.y;
 
-    if(activePowers.magnet>0&&Math.hypot(dx,dy)<190){
-      g.x+=dx*.035;
-      g.y+=dy*.035;
-    }
+    if (!p.taken && Math.hypot(ball.x - p.x, dy) < ball.r + p.radius) {
+      p.taken = true;
 
-    if(Math.hypot(dx,dy)<ball.r+g.r+3){
-      collectGem(g);
-      gems.splice(i,1);
-    }else if(g.x<-20){
-      gems.splice(i,1);
-    }
-  }
-
-  // Powerups
-
-  powerTimer++;
-
-  if(powerTimer>500){
-    spawnPowerup();
-    powerTimer=0;
-  }
-
-  for(let i=powerups.length-1;i>=0;i--){
-    const p=powerups[i];
-    p.x-=currentSpeed;
-    p.phase+=.07;
-
-    if(Math.hypot(ball.x-p.x,ball.y-p.y)<ball.r+17){
-      activatePower(p.type);
-      burst(p.x,p.y,"#8efaff",20);
-      powerups.splice(i,1);
-    }else if(p.x<-30){
-      powerups.splice(i,1);
-    }
-  }
-
-  // Bosses: every 500 points
-
-  if(data.selectedMode!=="zen"&&!boss&&Math.floor(score/500)>bossKills){
-    spawnBoss();
-  }
-
-  updateBoss();
-
-  // Boss warning hazard: a telegraphed horizontal attack.
-  if(boss&&boss.warning>0&&boss.warning<30){
-    const hazardY=boss.y;
-    if(Math.abs(ball.y-hazardY)<35&&Math.abs(ball.x-boss.x)<85){
-      damage();
-    }
-  }
-
-  // Boss collision
-
-  if(boss){
-    if(Math.hypot(ball.x-boss.x,ball.y-boss.y)<ball.r+36){
-      damage();
-    }
-
-    // The boss can be hit by a close pass.
-    if(Math.abs(ball.x-boss.x)<ball.r+40&&Math.abs(ball.y-boss.y)<ball.r+40){
-      if(frame%35===0){
-        boss.hp--;
-        score+=10;
-        burst(boss.x,boss.y,"#ff75bb",12);
+      if (p.type === "coin") {
+        runCoins++;
+        sound(900, .09);
+        createParticles(p.x, p.y, "#ffd65a", 12);
+      } else if (p.type === "shield") {
+        ball.shield = true;
+        ball.shieldTime = 600;
+        sound(500, .18);
+        createParticles(p.x, p.y, "#36eaff", 15);
+      } else if (p.type === "slow") {
+        ball.slowTime = 360;
+        sound(350, .2);
+        createParticles(p.x, p.y, "#b56bff", 15);
       }
     }
   }
 
-  // Particles
+  pickups = pickups.filter(p => p.x > -30 && !p.taken);
 
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i];
-    p.x+=p.vx;
-    p.y+=p.vy;
-    p.vy+=.04;
-    p.life-=.025;
-
-    if(p.life<=0)particles.splice(i,1);
+  // Частицы.
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += .035;
+    p.life--;
   }
 
-  if(data.selectedMode==="rush"&&gameTime>=60)endGame();
+  particles = particles.filter(p => p.life > 0);
+
+  // Фон.
+  backgroundOffset += speed * .35;
 
   updateHUD();
-  checkAchievements();
 }
 
-/* =====================================
-   DRAWING
-===================================== */
-
-function worldColors() {
-  const themes={
-    space:["#0b1731","#080b1b","#4e8cff"],
-    cyber:["#21103b","#0b1027","#ff4bba"],
-    volcano:["#3a151c","#100b14","#ff6b30"],
-    ice:["#12344c","#081322","#71e9ff"]
-  };
-
-  return themes[data.selectedWorld]||themes.space;
-}
+/* ---------- ОТРИСОВКА ---------- */
 
 function drawBackground() {
-  const colors=worldColors();
+  const gradient = ctx.createLinearGradient(0, 0, 0, H);
+  gradient.addColorStop(0, "#0b1831");
+  gradient.addColorStop(1, "#070b19");
 
-  const gradient=ctx.createLinearGradient(0,0,W,H);
-  gradient.addColorStop(0,colors[0]);
-  gradient.addColorStop(1,colors[1]);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, W, H);
 
-  ctx.fillStyle=gradient;
-  ctx.fillRect(0,0,W,H);
+  // Светящиеся круги на фоне.
+  const glow = ctx.createRadialGradient(450, 250, 20, 450, 250, 450);
+  glow.addColorStop(0, "rgba(44, 90, 170, .16)");
+  glow.addColorStop(1, "rgba(5, 10, 25, 0)");
 
-  // Grid
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle="#ffffff09";
-  ctx.lineWidth=1;
+  // Звёзды.
+  for (const s of stars) {
+    s.x -= s.speed;
 
-  for(let x=0;x<W;x+=45){
+    if (s.x < 0) {
+      s.x = W;
+      s.y = Math.random() * H;
+    }
+
+    ctx.globalAlpha = s.alpha;
+    ctx.fillStyle = "#9ddaff";
+    ctx.fillRect(s.x, s.y, s.size, s.size);
+  }
+
+  ctx.globalAlpha = 1;
+
+  // Сетка.
+  ctx.strokeStyle = "rgba(70, 140, 220, .08)";
+  ctx.lineWidth = 1;
+
+  const offset = backgroundOffset % 45;
+
+  for (let x = -45 + offset; x < W; x += 45) {
     ctx.beginPath();
-    ctx.moveTo(x,0);
-    ctx.lineTo(x,H);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
     ctx.stroke();
   }
 
-  for(let y=0;y<H;y+=45){
+  for (let y = 0; y < H; y += 45) {
     ctx.beginPath();
-    ctx.moveTo(0,y);
-    ctx.lineTo(W,y);
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
     ctx.stroke();
   }
-
-  // Stars
-
-  for(const s of stars){
-    ctx.fillStyle="#ffffff88";
-    ctx.globalAlpha=.35+Math.sin(frame*.04+s.x)*.3;
-    ctx.fillRect(s.x,s.y,s.size,s.size);
-  }
-
-  ctx.globalAlpha=1;
-
-  // Neon floor
-
-  ctx.shadowColor=colors[2];
-  ctx.shadowBlur=20;
-  ctx.fillStyle=colors[2];
-  ctx.fillRect(0,FLOOR,W,3);
-  ctx.shadowBlur=0;
 }
 
 function drawObstacles() {
-  for(const o of obstacles){
-    const color=worldColors()[2];
+  for (const o of obstacles) {
+    const rects = obstacleRectangles(o);
 
-    const gradient=ctx.createLinearGradient(o.x,0,o.x+o.w,0);
-    gradient.addColorStop(0,color);
-    gradient.addColorStop(.5,"#ffffff");
-    gradient.addColorStop(1,color);
+    for (const r of rects) {
+      const grad = ctx.createLinearGradient(r.x, 0, r.x + r.w, 0);
+      grad.addColorStop(0, "#174d76");
+      grad.addColorStop(.5, "#2586b4");
+      grad.addColorStop(1, "#12365f");
 
-    ctx.fillStyle=gradient;
-    ctx.shadowColor=color;
-    ctx.shadowBlur=20;
+      ctx.fillStyle = grad;
+      ctx.shadowColor = "#26cfff";
+      ctx.shadowBlur = 13;
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.shadowBlur = 0;
 
+      ctx.strokeStyle = "rgba(106, 231, 255, .8)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+    }
+  }
+}
+
+function drawPickups() {
+  for (const p of pickups) {
+    const bob = Math.sin(p.phase) * 4;
+
+    if (p.type === "coin") {
+      ctx.fillStyle = "#ffd65a";
+      ctx.shadowColor = "#ffd65a";
+    } else if (p.type === "shield") {
+      ctx.fillStyle = "#36eaff";
+      ctx.shadowColor = "#36eaff";
+    } else {
+      ctx.fillStyle = "#b56bff";
+      ctx.shadowColor = "#b56bff";
+    }
+
+    ctx.shadowBlur = 18;
     ctx.beginPath();
-    ctx.roundRect(o.x,0,o.w,o.top,7);
+    ctx.arc(p.x, p.y + bob, p.radius, 0, Math.PI * 2);
     ctx.fill();
+    ctx.shadowBlur = 0;
 
-    ctx.beginPath();
-    ctx.roundRect(o.x,o.bottom,o.w,H-o.bottom,7);
-    ctx.fill();
+    ctx.fillStyle = "#071323";
+    ctx.font = "bold 13px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
-    ctx.shadowBlur=0;
+    ctx.fillText(
+      p.type === "coin" ? "$" : p.type === "shield" ? "S" : "Z",
+      p.x, p.y + bob
+    );
   }
 }
 
 function drawBall() {
-  const skin=skins.find(s=>s.id===data.selectedSkin)||skins[0];
-
-  if(hitCooldown>0&&Math.floor(frame/5)%2===0)return;
-
-  const color=skin.color;
-
-  const grad=ctx.createRadialGradient(
-    ball.x-6,ball.y-7,2,
-    ball.x,ball.y,ball.r+7
-  );
-
-  if(data.selectedSkin==="rainbow"){
-    grad.addColorStop(0,"white");
-    grad.addColorStop(.4,"#ff6fe5");
-    grad.addColorStop(.75,"#5eeaff");
-    grad.addColorStop(1,"#7357ff");
-  }else{
-    grad.addColorStop(0,"#ffffff");
-    grad.addColorStop(.3,color);
-    grad.addColorStop(1,"#17274d");
-  }
+  const skin = currentSkin();
 
   ctx.save();
-  ctx.shadowColor=color;
-  ctx.shadowBlur=30;
 
-  ctx.fillStyle=grad;
-  ctx.beginPath();
-  ctx.ellipse(
-    ball.x,ball.y,
-    ball.r*(2-ball.squash),
-    ball.r*ball.squash,
-    0,0,Math.PI*2
-  );
-  ctx.fill();
+  if (ball.shield) {
+    ctx.strokeStyle = "#36eaff";
+    ctx.lineWidth = 3;
+    ctx.shadowColor = "#36eaff";
+    ctx.shadowBlur = 20;
 
-  ctx.restore();
-
-  if(activePowers.shield>0){
-    ctx.strokeStyle="#5ceeff";
-    ctx.lineWidth=3;
-    ctx.shadowColor="#4deaff";
-    ctx.shadowBlur=15;
     ctx.beginPath();
-    ctx.arc(ball.x,ball.y,27+Math.sin(frame*.2)*3,0,Math.PI*2);
+    ctx.arc(ball.x, ball.y, 25 + Math.sin(frame * .12) * 2, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.shadowBlur=0;
   }
-}
 
-function drawGems() {
-  for(const g of gems){
-    const y=g.y+Math.sin(g.phase)*6;
+  const gradient = ctx.createRadialGradient(
+    ball.x - 6, ball.y - 7, 2,
+    ball.x, ball.y, ball.r + 4
+  );
 
-    ctx.save();
-    ctx.translate(g.x,y);
-    ctx.rotate(Math.PI/4);
+  gradient.addColorStop(0, "#ffffff");
+  gradient.addColorStop(.25, skin.color);
+  gradient.addColorStop(1, "#203f83");
 
-    ctx.fillStyle="#ffe06c";
-    ctx.shadowColor="#ffe06c";
-    ctx.shadowBlur=20;
-    ctx.fillRect(-7,-7,14,14);
+  ctx.fillStyle = gradient;
+  ctx.shadowColor = skin.color;
+  ctx.shadowBlur = 25;
 
-    ctx.fillStyle="white";
-    ctx.fillRect(-3,-3,5,5);
-
-    ctx.restore();
-  }
-}
-
-function drawPowerups() {
-  const icons={
-    shield:"🛡️",
-    magnet:"🧲",
-    slow:"⏳",
-    double:"✨"
-  };
-
-  for(const p of powerups){
-    ctx.save();
-    ctx.translate(p.x,p.y+Math.sin(p.phase)*5);
-    ctx.shadowColor="#57efff";
-    ctx.shadowBlur=20;
-    ctx.fillStyle="#173c5b";
-    ctx.beginPath();
-    ctx.arc(0,0,19,0,Math.PI*2);
-    ctx.fill();
-    ctx.shadowBlur=0;
-    ctx.font="20px Arial";
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.fillText(icons[p.type],0,1);
-    ctx.restore();
-  }
-}
-
-function drawBoss() {
-  if(!boss)return;
-
-  ctx.save();
-
-  ctx.shadowColor="#ff3889";
-  ctx.shadowBlur=30;
-
-  ctx.fillStyle="#9c2766";
   ctx.beginPath();
-  ctx.arc(boss.x,boss.y,35,0,Math.PI*2);
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.shadowBlur=0;
-
-  ctx.fillStyle="#fff";
-  ctx.beginPath();
-  ctx.arc(boss.x-12,boss.y-7,6,0,Math.PI*2);
-  ctx.arc(boss.x+12,boss.y-7,6,0,Math.PI*2);
-  ctx.fill();
-
-  ctx.fillStyle="#080b18";
-  ctx.beginPath();
-  ctx.arc(boss.x-12,boss.y-7,2,0,Math.PI*2);
-  ctx.arc(boss.x+12,boss.y-7,2,0,Math.PI*2);
-  ctx.fill();
-
+  ctx.shadowBlur = 0;
   ctx.restore();
-
-  // Health bar
-
-  ctx.fillStyle="#25182f";
-  ctx.fillRect(W/2-100,20,200,12);
-
-  ctx.fillStyle="#ff478f";
-  ctx.fillRect(W/2-100,20,200*(boss.hp/boss.maxHp),12);
-
-  ctx.textAlign="center";
-  ctx.fillStyle="white";
-  ctx.font="bold 12px Orbitron";
-  ctx.fillText("BOSS",W/2,14);
-  ctx.textAlign="left";
-
-  if(boss.warning>0){
-    ctx.fillStyle="#ff405b";
-    ctx.globalAlpha=.3+Math.sin(frame*.4)*.3;
-    ctx.fillRect(0,boss.y-35,W,70);
-    ctx.globalAlpha=1;
-  }
 }
 
 function drawParticles() {
-  for(const p of particles){
-    ctx.globalAlpha=p.life;
-    ctx.fillStyle=p.color;
-    ctx.shadowColor=p.color;
-    ctx.shadowBlur=10;
+  for (const p of particles) {
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+    ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  ctx.globalAlpha=1;
-  ctx.shadowBlur=0;
-}
-
-function drawHUD() {
-  ctx.font="bold 17px Orbitron";
-  ctx.fillStyle="white";
-  ctx.shadowColor="#000";
-  ctx.shadowBlur=8;
-  ctx.fillText("SCORE "+Math.floor(score),20,35);
-  ctx.shadowBlur=0;
-
-  let y=65;
-
-  const names={
-    shield:"🛡️ ЩИТ",
-    magnet:"🧲 МАГНИТ",
-    slow:"⏳ SLOW",
-    double:"✨ X2"
-  };
-
-  for(const key in activePowers){
-    if(activePowers[key]>0){
-      ctx.fillStyle="#71eaff";
-      ctx.font="13px Rajdhani";
-      ctx.fillText(names[key]+" "+Math.ceil(activePowers[key]/60)+"s",20,y);
-      y+=21;
-    }
-  }
-
-  if(boss){
-    ctx.font="bold 13px Orbitron";
-    ctx.fillStyle="#ff75ae";
-    ctx.fillText("BOSS BATTLE",W-150,30);
-  }
-}
-
-function overlay(title,subtitle) {
-  ctx.fillStyle="#040817d9";
-  ctx.fillRect(0,0,W,H);
-
-  ctx.textAlign="center";
-
-  ctx.shadowColor="#47caff";
-  ctx.shadowBlur=30;
-  ctx.fillStyle="white";
-  ctx.font="bold 48px Orbitron";
-  ctx.fillText(title,W/2,H/2-25);
-
-  ctx.shadowBlur=0;
-  ctx.fillStyle="#a9c9e8";
-  ctx.font="22px Rajdhani";
-  ctx.fillText(subtitle,W/2,H/2+25);
-
-  ctx.textAlign="left";
+  ctx.globalAlpha = 1;
 }
 
 function draw() {
+  ctx.clearRect(0, 0, W, H);
+
   drawBackground();
   drawObstacles();
-  drawGems();
-  drawPowerups();
-  drawBoss();
+  drawPickups();
   drawParticles();
   drawBall();
-  drawHUD();
 
-  if(!started&&!gameOver){
-    overlay("NEON BALL","Нажми ИГРАТЬ, чтобы начать");
+  if (state === "paused") {
+    ctx.fillStyle = "rgba(3, 8, 20, .5)";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 38px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("ПАУЗА", W / 2, H / 2);
   }
 
-  if(paused){
-    overlay("PAUSED","Нажми ПРОБЕЛ или ИГРАТЬ");
+  if (ball.slowTime > 0 && state === "playing") {
+    ctx.fillStyle = "#d2a7ff";
+    ctx.font = "bold 13px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("ЗАМЕДЛЕНИЕ", W / 2, H - 25);
   }
 
-  if(gameOver){
-    overlay("GAME OVER","Счёт: "+Math.floor(score)+" · Нажми ИГРАТЬ");
-  }
-}
-
-/* =====================================
-   HUD AND END
-===================================== */
-
-function updateHUD() {
-  best=Math.max(best,Math.floor(score));
-
-  $("score").textContent=Math.floor(score);
-  $("best").textContent=best;
-  $("lives").textContent=lives;
-  $("speed").textContent=speed.toFixed(1)+"x";
-
-  if(score>=(data.best[data.difficulty]||0)){
-    data.best[data.difficulty]=Math.floor(score);
+  if (ball.shield && state === "playing") {
+    ctx.fillStyle = "#6deaff";
+    ctx.font = "bold 13px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("ЩИТ АКТИВЕН", W / 2, H - 25);
   }
 }
 
-function endGame() {
-  gameOver=true;
-  running=false;
-  pressing=false;
-
-  data.totalScore+=Math.floor(score);
-  data.totalTime+=Math.floor(gameTime);
-
-  if(score>(data.best[data.difficulty]||0)){
-    data.best[data.difficulty]=Math.floor(score);
-  }
-
-  if(data.selectedMode==="zen"){
-    data.totalScore+=Math.floor(score);
-  }
-
-  checkAchievements();
-  save();
-  stopMusic();
-  tone(120,.6,"sawtooth");
-  updateHUD();
-}
-
-/* =====================================
-   ACHIEVEMENTS
-===================================== */
-
-function checkAchievements() {
-  for(const a of achievements){
-    if(a.check()&&!data.achievements.includes(a.id)){
-      data.achievements.push(a.id);
-      data.coins+=a.reward;
-      data.totalCoins+=a.reward;
-      toast("🏆 "+a.name+" · +"+a.reward+" 💎");
-      tone(900,.3);
-      save();
-    }
-  }
-}
-
-function openAchievements() {
-  const box=$("achievementList");
-  box.innerHTML="";
-
-  achievements.forEach(a=>{
-    const unlocked=data.achievements.includes(a.id);
-
-    const el=document.createElement("div");
-    el.className="achievement"+(unlocked?"":" locked");
-
-    el.innerHTML=`
-      <div class="achievement-icon">${unlocked?a.icon:"🔒"}</div>
-      <div style="flex:1">
-        <strong>${a.name}</strong>
-        <small>${a.desc}</small>
-        <small>Награда: ${a.reward} 💎</small>
-      </div>
-      <strong>${unlocked?"✓":"..."}</strong>
-    `;
-
-    box.appendChild(el);
-  });
-
-  openModal("achievementModal");
-}
-
-/* =====================================
-   SHOP
-===================================== */
-
-function openShop() {
-  const box=$("shopCards");
-  box.innerHTML="";
-
-  skins.forEach(s=>{
-    const owned=data.ownedSkins.includes(s.id);
-    const selected=data.selectedSkin===s.id;
-
-    const card=document.createElement("div");
-    card.className="item-card"+(selected?" selected":"");
-
-    card.innerHTML=`
-      <div class="skin-preview" style="color:${s.color}">${s.emoji}</div>
-      <h3>${s.name}</h3>
-      <p>${owned?"Уже приобретён":s.price+" 💎"}</p>
-      <button ${selected?"disabled":""}>
-        ${selected?"ВЫБРАН":owned?"ВЫБРАТЬ":"КУПИТЬ"}
-      </button>
-    `;
-
-    card.querySelector("button").onclick=()=>{
-      if(owned){
-        data.selectedSkin=s.id;
-        save();
-        openShop();
-        tone(600,.1);
-      }else if(data.coins>=s.price){
-        data.coins-=s.price;
-        data.ownedSkins.push(s.id);
-        data.selectedSkin=s.id;
-        save();
-        openShop();
-        toast("✨ СКИН ПРИОБРЕТЁН!");
-      }else{
-        toast("Недостаточно кристаллов!");
-      }
-    };
-
-    box.appendChild(card);
-  });
-
-  openModal("shopModal");
-}
-
-/* =====================================
-   WORLDS AND MODES
-===================================== */
-
-function renderWorlds() {
-  const box=$("worldCards");
-  box.innerHTML="";
-
-  worlds.forEach(w=>{
-    const card=document.createElement("div");
-    card.className="item-card"+(data.selectedWorld===w.id?" selected":"");
-
-    card.innerHTML=`
-      <div class="skin-preview">${w.emoji}</div>
-      <h3>${w.name}</h3>
-      <p>${w.description}</p>
-      <button>${data.selectedWorld===w.id?"ВЫБРАН":"ВЫБРАТЬ"}</button>
-    `;
-
-    card.querySelector("button").onclick=()=>{
-      data.selectedWorld=w.id;
-      save();
-      renderWorlds();
-      draw();
-      toast("🌌 МИР ИЗМЕНЁН");
-    };
-
-    box.appendChild(card);
-  });
-}
-
-function renderModes() {
-  const box=$("modeCards");
-  box.innerHTML="";
-
-  modes.forEach(m=>{
-    const unlocked=!m.secret||data.totalGames>=3;
-    const card=document.createElement("div");
-
-    card.className="item-card"+(data.selectedMode===m.id?" selected":"");
-
-    card.innerHTML=`
-      <div class="skin-preview">${unlocked?m.emoji:"🔒"}</div>
-      <h3>${m.name}</h3>
-      <p>${unlocked?m.description:"Откроется после 3 игр"}</p>
-      <button ${!unlocked?"disabled":""}>
-        ${data.selectedMode===m.id?"ВЫБРАН":"ВЫБРАТЬ"}
-      </button>
-    `;
-
-    card.querySelector("button").onclick=()=>{
-      if(!unlocked)return;
-
-      data.selectedMode=m.id;
-      save();
-      renderModes();
-      resetGame();
-      toast("🎮 РЕЖИМ ИЗМЕНЁН");
-    };
-
-    box.appendChild(card);
-  });
-}
-
-/* =====================================
-   POWERUP INFO
-===================================== */
-
-function renderPowers() {
-  const powers=[
-    ["🛡️","ЩИТ","Защищает от одного столкновения."],
-    ["🧲","МАГНИТ","Притягивает ближайшие кристаллы."],
-    ["⏳","ЗАМЕДЛЕНИЕ","Временно замедляет игру."],
-    ["✨","УДВОЕНИЕ","Удваивает очки и монеты."]
-  ];
-
-  $("powerInfo").innerHTML=powers.map(p=>`
-    <div class="achievement">
-      <div class="achievement-icon">${p[0]}</div>
-      <div>
-        <strong>${p[1]}</strong>
-        <small>${p[2]}</small>
-      </div>
-    </div>
-  `).join("")+`
-    <p style="color:#8ba2c4;margin-top:12px">
-      Бонусы появляются случайным образом во время игры.
-      Собирай их, чтобы получить преимущество!
-    </p>
-  `;
-}
-
-/* =====================================
-   STATISTICS
-===================================== */
-
-function openStats() {
-  const stats=[
-    ["🎮","Сыграно игр",data.totalGames],
-    ["💎","Всего заработано",data.totalCoins],
-    ["🏆","Достижения",data.achievements.length+"/"+achievements.length],
-    ["📈","Общий счёт",data.totalScore],
-    ["⏱️","Время игры",Math.floor(data.totalTime/60)+" мин"],
-    ["👾","Победы над боссами","За текущую игру: "+bossKills]
-  ];
-
-  $("statsCards").innerHTML=stats.map(s=>`
-    <div class="item-card">
-      <div class="skin-preview">${s[0]}</div>
-      <h3>${s[2]}</h3>
-      <p>${s[1]}</p>
-    </div>
-  `).join("");
-
-  openModal("statsModal");
-}
-
-/* =====================================
-   MODALS
-===================================== */
-
-function openModal(id) {
-  closeModals();
-  $(id).classList.add("open");
-}
-
-function closeModals() {
-  document.querySelectorAll(".modal").forEach(m=>m.classList.remove("open"));
-}
-
-document.querySelectorAll(".modal").forEach(modal=>{
-  modal.addEventListener("click",e=>{
-    if(e.target===modal)closeModals();
-  });
-});
-
-/* =====================================
-   SETTINGS
-===================================== */
-
-function saveSettings() {
-  data.settings.sound=$("sound").checked;
-  data.settings.music=$("music").checked;
-  data.settings.particles=$("particlesToggle").checked;
-  data.settings.hints=$("hints").checked;
-
-  save();
-
-  if(data.settings.music)startMusic();
-  else stopMusic();
-
-  document.querySelector(".hint").style.display=
-    data.settings.hints?"block":"none";
-}
-
-function loadSettings() {
-  $("difficulty").value=data.difficulty;
-  $("sound").checked=data.settings.sound;
-  $("music").checked=data.settings.music;
-  $("particlesToggle").checked=data.settings.particles;
-  $("hints").checked=data.settings.hints;
-
-  saveSettings();
-}
-
-function changeDifficulty(value) {
-  data.difficulty=value;
-  save();
-  resetGame();
-  toast("⚙️ СЛОЖНОСТЬ ИЗМЕНЕНА");
-}
-
-function resetProgress() {
-  if(!confirm("Точно удалить весь прогресс? Это действие нельзя отменить."))return;
-
-  localStorage.removeItem(STORAGE);
-  location.reload();
-}
-
-/* =====================================
-   HELP AND TOASTS
-===================================== */
-
-let toastTimer;
-
-function toast(message) {
-  const el=$("toast");
-  el.textContent=message;
-  el.classList.add("show");
-
-  clearTimeout(toastTimer);
-
-  toastTimer=setTimeout(()=>{
-    el.classList.remove("show");
-  },2200);
-}
-
-function showHelp() {
-  alert(
-`NEON BALL — VERSION 1.0
-
-УПРАВЛЕНИЕ:
-SPACE / МЫШЬ / КАСАНИЕ — поднимать мяч.
-Кнопка ПАУЗА — остановить игру.
-
-ЦЕЛЬ:
-Уклоняйся от препятствий.
-Собирай кристаллы.
-Подбирай бонусы.
-Побеждай боссов.
-
-МАГАЗИН:
-Покупай новые скины.
-
-СЕКРЕТЫ:
-После 3 игр откроются дополнительные режимы.
-
-УДАЧИ!`
-  );
-}
-
-/* =====================================
-   INPUT
-===================================== */
-
-window.addEventListener("keydown",e=>{
-  if(e.code==="Space"){
-    e.preventDefault();
-
-    if(gameOver)return;
-
-    if(!started)startGame();
-    else if(paused)togglePause();
-    else pressing=true;
-  }
-
-  if(e.code==="Escape"){
-    if(started&&!gameOver)togglePause();
-    else closeModals();
-  }
-});
-
-window.addEventListener("keyup",e=>{
-  if(e.code==="Space")pressing=false;
-});
-
-canvas.addEventListener("pointerdown",e=>{
-  e.preventDefault();
-
-  if(!started&&!gameOver)startGame();
-
-  if(running&&!paused)pressing=true;
-});
-
-window.addEventListener("pointerup",()=>{
-  pressing=false;
-});
-
-window.addEventListener("blur",()=>{
-  pressing=false;
-
-  if(running&&started&&!gameOver){
-    paused=true;
-    running=false;
-  }
-});
-
-/* =====================================
-   MAIN LOOP
-===================================== */
+/* ---------- ЦИКЛ ---------- */
 
 function loop() {
   update();
@@ -2075,17 +1236,367 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-/* =====================================
-   START
-===================================== */
-
-createStars();
-renderWorlds();
-renderModes();
-renderPowers();
-loadSettings();
-resetGame();
 loop();
+
+/* ---------- УПРАВЛЕНИЕ ---------- */
+
+function press() {
+  if (state === "playing") {
+    holding = true;
+  }
+}
+
+function release() {
+  holding = false;
+}
+
+canvas.addEventListener("pointerdown", e => {
+  if (state === "playing") {
+    e.preventDefault();
+    press();
+  }
+});
+
+window.addEventListener("pointerup", release);
+window.addEventListener("pointercancel", release);
+
+window.addEventListener("keydown", e => {
+  if (e.code === "Space" || e.code === "ArrowUp") {
+    e.preventDefault();
+
+    if (state === "menu" || state === "over") {
+      startGame();
+    } else if (state === "playing") {
+      press();
+    }
+  }
+
+  if (e.code === "KeyP" || e.code === "Escape") {
+    if (state === "playing" || state === "paused") {
+      pauseGame();
+    }
+  }
+});
+
+window.addEventListener("keyup", e => {
+  if (e.code === "Space" || e.code === "ArrowUp") release();
+});
+
+/* ---------- ПОЛНЫЙ ЭКРАН ---------- */
+
+async function enterFullscreen() {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    }
+
+    if (screen.orientation && screen.orientation.lock) {
+      try {
+        await screen.orientation.lock("landscape");
+      } catch (e) {
+        console.log("Браузер не разрешил блокировку ориентации");
+      }
+    }
+  } catch (e) {
+    console.log("Полноэкранный режим недоступен");
+  }
+}
+
+document.getElementById("fullscreenButton").onclick = enterFullscreen;
+document.getElementById("portraitFullscreen").onclick = enterFullscreen;
+
+/* ---------- МЕНЮ ---------- */
+
+const menuContent = document.getElementById("menuContent");
+let activeTab = "game";
+
+function openMenu() {
+  const previousState = state;
+
+  if (state === "playing") {
+    state = "paused";
+    document.getElementById("status").textContent = "МЕНЮ";
+  }
+
+  if (state === "menu") {
+    state = "menu";
+  }
+
+  document.getElementById("menuScreen").classList.remove("hidden");
+  renderTab(activeTab);
+
+  // Сохраняем состояние, чтобы можно было продолжить.
+  document.getElementById("resumeButton").dataset.previous =
+    previousState === "playing" ? "playing" : "paused";
+}
+
+function closeMenu() {
+  document.getElementById("menuScreen").classList.add("hidden");
+}
+
+function renderTab(tab) {
+  activeTab = tab;
+
+  document.querySelectorAll(".menu-tabs button").forEach(button => {
+    button.classList.toggle("active", button.dataset.tab === tab);
+  });
+
+  if (tab === "game") {
+    menuContent.innerHTML = `
+      <h3>СЛОЖНОСТЬ</h3>
+      <div class="setting-row">
+        <span>Уровень игры</span>
+        <select id="difficultySelect">
+          <option value="easy">Лёгкая</option>
+          <option value="normal">Обычная</option>
+          <option value="hard">Сложная</option>
+          <option value="insane">Безумная</option>
+        </select>
+      </div>
+
+      <h3>НАСТРОЙКИ</h3>
+      <div class="setting-row">
+        <span>Звуковые эффекты</span>
+        <input type="checkbox" id="soundToggle">
+      </div>
+      <div class="setting-row">
+        <span>Частицы и эффекты</span>
+        <input type="checkbox" id="particlesToggle">
+      </div>
+
+      <h3>УПРАВЛЕНИЕ</h3>
+      <div class="mission">
+        Удерживай палец на игровом поле, чтобы мяч поднимался.
+        Отпусти палец, чтобы мяч начал падать.
+        <br><br>
+        На компьютере: Space или стрелка вверх.
+        <br>
+        Пауза: P или кнопка Ⅱ.
+      </div>
+    `;
+
+    const select = document.getElementById("difficultySelect");
+    select.value = settings.difficulty;
+
+    select.onchange = () => {
+      settings.difficulty = select.value;
+      data.difficulty = select.value;
+      saveData();
+
+      if (state === "playing" || state === "paused") {
+        startGame();
+      }
+
+      renderTab("game");
+    };
+
+    const soundToggle = document.getElementById("soundToggle");
+    soundToggle.checked = settings.sound;
+
+    soundToggle.onchange = () => {
+      settings.sound = soundToggle.checked;
+      data.sound = settings.sound;
+      saveData();
+    };
+
+    const particlesToggle = document.getElementById("particlesToggle");
+    particlesToggle.checked = settings.particles;
+
+    particlesToggle.onchange = () => {
+      settings.particles = particlesToggle.checked;
+      data.particles = settings.particles;
+      saveData();
+    };
+  }
+
+  if (tab === "skins") {
+    let html = `
+      <h3>МАГАЗИН СКИНОВ</h3>
+      <div class="mission">Баланс: 🪙 ${data.coins} монет</div>
+      <div class="skin-grid">
+    `;
+
+    for (const skin of skins) {
+      const owned = data.skins.includes(skin.id);
+      const selected = data.selectedSkin === skin.id;
+
+      html += `
+        <div class="skin ${selected ? "selected" : ""}">
+          <div class="skin-dot"
+               style="background:${skin.color};color:${skin.color}"></div>
+          <strong>${skin.name}</strong>
+          <div style="font-size:11px;color:#91a9c9;margin:6px 0">
+            ${owned ? "Куплен" : "🪙 " + skin.price}
+          </div>
+          <button data-skin="${skin.id}">
+            ${selected ? "Выбран" : owned ? "Выбрать" : "Купить"}
+          </button>
+        </div>
+      `;
+    }
+
+    html += "</div>";
+    menuContent.innerHTML = html;
+
+    menuContent.querySelectorAll("[data-skin]").forEach(button => {
+      button.onclick = () => {
+        const skin = skins.find(s => s.id === button.dataset.skin);
+        if (!skin) return;
+
+        if (data.skins.includes(skin.id)) {
+          data.selectedSkin = skin.id;
+        } else if (data.coins >= skin.price) {
+          data.coins -= skin.price;
+          data.skins.push(skin.id);
+          data.selectedSkin = skin.id;
+          sound(800, .15);
+        } else {
+          sound(150, .15);
+          alert("Недостаточно монет!");
+          return;
+        }
+
+        saveData();
+        updateHUD();
+        renderTab("skins");
+      };
+    });
+  }
+
+  if (tab === "missions") {
+    let html = "<h3>ЗАДАНИЯ И ДОСТИЖЕНИЯ</h3>";
+
+    for (const m of missions) {
+      const completed = m.check();
+      const claimed = data.missionsClaimed.includes(m.id);
+
+      html += `
+        <div class="mission">
+          <strong>${m.title}</strong>
+          <p style="color:#9db0ce;margin-top:5px">${m.description}</p>
+          <div class="progress">
+            <div style="width:${completed ? 100 : 0}%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px">
+            <span style="font-size:12px;color:#a9bddb">Награда: ${m.reward} 🪙</span>
+            <button data-claim="${m.id}" ${!completed || claimed ? "disabled" : ""}>
+              ${claimed ? "Получено" : completed ? "Забрать" : "Не выполнено"}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    menuContent.innerHTML = html;
+
+    menuContent.querySelectorAll("[data-claim]").forEach(button => {
+      button.onclick = () => {
+        const mission = missions.find(m => m.id === button.dataset.claim);
+
+        if (!mission || !mission.check()) return;
+        if (data.missionsClaimed.includes(mission.id)) return;
+
+        data.missionsClaimed.push(mission.id);
+        data.coins += mission.reward;
+
+        saveData();
+        updateHUD();
+        renderTab("missions");
+        sound(900, .2);
+      };
+    });
+  }
+
+  if (tab === "stats") {
+    menuContent.innerHTML = `
+      <h3>ТВОЯ СТАТИСТИКА</h3>
+
+      <div class="setting-row">
+        <span>Лучший результат</span>
+        <strong>${data.best}</strong>
+      </div>
+
+      <div class="setting-row">
+        <span>Всего игр</span>
+        <strong>${data.games}</strong>
+      </div>
+
+      <div class="setting-row">
+        <span>Собрано монет</span>
+        <strong>${data.totalCoins}</strong>
+      </div>
+
+      <div class="setting-row">
+        <span>Всего очков за партии</span>
+        <strong>${data.totalScore}</strong>
+      </div>
+
+      <div class="setting-row">
+        <span>Открыто скинов</span>
+        <strong>${data.skins.length}/${skins.length}</strong>
+      </div>
+
+      <h3>ДАННЫЕ</h3>
+      <button id="resetDataButton" style="width:100%;background:#582b42">
+        СБРОСИТЬ ПРОГРЕСС
+      </button>
+    `;
+
+    document.getElementById("resetDataButton").onclick = () => {
+      if (!confirm("Точно сбросить весь прогресс?")) return;
+
+      data = { ...defaultData, skins: ["cyan"] };
+      settings.difficulty = "normal";
+      settings.sound = true;
+      settings.particles = true;
+      saveData();
+      updateHUD();
+      renderTab("stats");
+    };
+  }
+}
+
+document.querySelectorAll(".menu-tabs button").forEach(button => {
+  button.onclick = () => renderTab(button.dataset.tab);
+});
+
+/* ---------- КНОПКИ ---------- */
+
+document.getElementById("startButton").onclick = () => {
+  enterFullscreen();
+  startGame();
+};
+
+document.getElementById("restartButton").onclick = startGame;
+document.getElementById("menuRestartButton").onclick = startGame;
+
+document.getElementById("pauseButton").onclick = pauseGame;
+document.getElementById("menuButton").onclick = openMenu;
+document.getElementById("startMenuButton").onclick = openMenu;
+document.getElementById("gameOverMenuButton").onclick = openMenu;
+
+document.getElementById("resumeButton").onclick = () => {
+  closeMenu();
+
+  if (state === "paused") {
+    state = "playing";
+    document.getElementById("status").textContent =
+      difficulty().name.toUpperCase();
+  }
+};
+
+document.getElementById("closeMenuButton").onclick = closeMenu;
+
+/* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
+
+settings.difficulty = difficulties[settings.difficulty]
+  ? settings.difficulty
+  : "normal";
+
+document.getElementById("best").textContent = data.best;
+document.getElementById("coins").textContent = data.coins;
+
+renderTab("game");
 
 </script>
 </body>
