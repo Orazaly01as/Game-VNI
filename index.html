@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wall Kickers Clone</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d0d12; font-family: system-ui, sans-serif; }
+  #game { display: block; width: 100vw; height: 100vh; touch-action: none; cursor: pointer; }
+  #ui { position: fixed; top: 16px; left: 16px; color: #fff; pointer-events: none; user-select: none; text-shadow: 0 2px 8px rgba(0,0,0,.7); }
+  #score { font-size: 40px; font-weight: 800; letter-spacing: 1px; line-height: 1; }
+  #hint { font-size: 13px; opacity: .7; margin-top: 6px; max-width: 280px; }
+  #gameover { position: fixed; inset: 0; display: none; place-items: center; background: rgba(5,5,10,.75); backdrop-filter: blur(4px); color: #fff; text-align: center; }
+  #gameover.show { display: grid; }
+  #gameover h1 { font-size: 46px; margin-bottom: 8px; }
+  #gameover p { opacity: .85; margin-bottom: 22px; font-size: 18px; }
+  #restart { padding: 14px 34px; border: 0; border-radius: 999px; background: #ff3d71; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; transition: transform .15s; }
+  #restart:hover { transform: scale(1.06); }
+  #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); padding: 10px 18px; border-radius: 999px; background: rgba(255, 61, 113, .9); color: #fff; font-weight: 700; opacity: 0; transition: opacity .3s; pointer-events: none; font-size: 15px; }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="ui">
+  <div id="score">0</div>
+  <div id="hint">Клик / тап / Space — прыжок. У стены — отскок. ← → для управления.</div>
+</div>
+
+<div id="toast"></div>
+
+<div id="gameover">
+  <div>
+    <h1>Поймал шип!</h1>
+    <p>Высота: <span id="finalScore">0</span></p>
+    <button id="restart">Заново</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const gameoverEl = document.getElementById('gameover');
+  const finalScoreEl = document.getElementById('finalScore');
+  const restartBtn = document.getElementById('restart');
+  const toastEl = document.getElementById('toast');
+
+  let W = 0, H = 0;
+  function resize() {
+    W = canvas.width = innerWidth;
+    H = canvas.height = innerHeight;
+  }
+  addEventListener('resize', () => {
+    resize();
+    if (worldReady) {
+      player.x = Math.max(player.r, Math.min(W - player.r, player.x));
+    }
+  });
+
+  // ---------- Константы физики ----------
+  const GRAVITY = 2100;
+  const MOVE_ACCEL = 2600;
+  const MOVE_MAX = 320;
+  const JUMP_SPEED = 820;
+  const WALL_JUMP_X = 480;
+  const WALL_JUMP_Y = 780;
+  const PLAYER_R = 15;
+  const WALL_H = 22;
+  const SPIKE_H = 16;
+
+  // Генерация
+  const STEP_MIN = 90;
+  const STEP_MAX = 130;
+  const MAX_DX = 200;
+
+  // ---------- Игрок ----------
+  const player = {
+    x: 0, y: 0, vx: 0, vy: 0, r: PLAYER_R,
+    onGround: false, wallDir: 0,
+    coyote: 0, jumpBuffer: 0,
+    trail: [],
+  };
+
+  // ---------- Мир ----------
+  let walls, spikes, particles, score, dead, camY, startY, worldReady = false;
+  let highestY = 0;
+  let checkpoint = { x: 0, y: 0 }; // безопасная позиция (ставим, только когда стоим)
+  let fallTimer = 0;
+  let lastDeathFromFall = 0;
+
+  function rand(min, max) { return min + Math.random() * (max - min); }
+  function showToast(text) {
+    toastEl.textContent = text;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove('show'), 1100);
+  }
+
+  function initWorld() {
+    walls = [];
+    spikes = [];
+    particles = [];
+    score = 0;
+    dead = false;
+    camY = 0;
+    fallTimer = 0;
+    lastDeathFromFall = 0;
+    worldReady = true;
+
+    const startW = Math.min(340, W * 0.6);
+    const startX = (W - startW) / 2;
+    const startPlatformY = H - 100;
+    walls.push({ x: startX, y: startPlatformY, w: startW, h: 400, ground: true });
+
+    player.x = W / 2;
+    player.y = startPlatformY - PLAYER_R;
+    player.vx = 0;
+    player.vy = 0;
+    player.onGround = true;
+    player.wallDir = 0;
+    player.coyote = 0;
+    player.jumpBuffer = 0;
+    player.trail = [];
+
+    startY = player.y;
+    highestY = startPlatformY;
+
+    // чекпоинт — стартовая площадка
+    checkpoint.x = player.x;
+    checkpoint.y = player.y;
+
+    generateUpTo(startY - 800);
+    generateUpTo(startY - 1600);
+    updateScore();
+    camY = player.y - H * 0.62;
+  }
+
+  function generateUpTo(targetY) {
+    while (highestY > targetY) {
+      spawnNextPlatform();
+    }
+  }
+
+  function spawnNextPlatform() {
+    const stepY = rand(STEP_MIN, STEP_MAX);
+    const y = highestY - stepY;
+
+    const prev = walls.reduce((a, b) => (b.y < a.y ? b : a));
+    const prevCenter = prev.x + prev.w / 2;
+
+    const w = rand(90, 170);
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    let targetCenter = prevCenter + dir * rand(50, MAX_DX);
+
+    const margin = 30;
+    targetCenter = Math.max(w / 2 + margin, Math.min(W - w / 2 - margin, targetCenter));
+
+    if (Math.abs(targetCenter - prevCenter) < 45) {
+      const dir2 = -dir;
+      targetCenter = prevCenter + dir2 * rand(80, MAX_DX);
+      targetCenter = Math.max(w / 2 + margin, Math.min(W - w / 2 - margin, targetCenter));
+    }
+
+    const x = targetCenter - w / 2;
+    walls.push({ x, y, w, h: WALL_H, ground: false });
+    highestY = y;
+
+    if (w >= 130 && Math.random() < 0.25) {
+      const spikeCount = Math.random() < 0.5 ? 1 : 2;
+      for (let s = 0; s < spikeCount; s++) {
+        spikes.push({ x: x + rand(10, w - 28), y: y + WALL_H, w: 18, h: SPIKE_H, dir: -1 });
+      }
+    }
+  }
+
+  // ---------- Ввод ----------
+  function doJump() {
+    if (dead) return;
+    player.jumpBuffer = 0.14;
+  }
+  addEventListener('mousedown', doJump);
+  addEventListener('touchstart', (e) => { e.preventDefault(); doJump(); }, { passive: false });
+  addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+      if (!e.repeat) doJump();
+      e.preventDefault();
+    }
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+  });
+  addEventListener('keyup', (e) => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+  });
+  const keys = { left: false, right: false };
+
+  restartBtn.addEventListener('click', () => {
+    gameoverEl.classList.remove('show');
+    initWorld();
+  });
+
+  // ---------- Респавн ----------
+  function respawn() {
+    // Если падаем повторно очень быстро — ставим на стартовую площадку,
+    // чтобы не зациклиться на «плохом» чекпоинте.
+    const now = performance.now() / 1000;
+    const tooFast = (now - lastDeathFromFall) < 1.2;
+    lastDeathFromFall = now;
+
+    if (tooFast) {
+      const startWall = walls.find(w => w.ground);
+      if (startWall) {
+        player.x = startWall.x + startWall.w / 2;
+        player.y = startWall.y - PLAYER_R - 1;
+      }
+    } else {
+      player.x = checkpoint.x;
+      player.y = checkpoint.y - 2; // чуть выше, чтобы не застрять в платформе
+    }
+
+    player.vx = 0;
+    player.vy = 0;
+    player.wallDir = 0;
+    player.onGround = false;
+    player.coyote = 0;
+    player.jumpBuffer = 0;
+    player.trail = [];
+
+    // Камера моментально на нужное место — никакого «доезда» с искривлением
+    camY = player.y - H * 0.62;
+
+    spawnParticles(player.x, player.y, 20, '#8ec5ff');
+    showToast('Возврат на платформу');
+  }
+
+  function die() {
+    if (dead) return;
+    dead = true;
+    spawnParticles(player.x, player.y, 26, '#ff5c8a');
+    finalScoreEl.textContent = score;
+    gameoverEl.classList.add('show');
+  }
+
+  // ---------- Физика ----------
+  function update(dt) {
+    updateParticles(dt);
+    updateTrail(dt);
+
+    if (dead) {
+      player.vy += GRAVITY * dt;
+      player.y += player.vy * dt;
+      return;
+    }
+
+    // Coyote / jump buffer
+    if (player.onGround || player.wallDir !== 0) player.coyote = 0.1;
+    else player.coyote = Math.max(0, player.coyote - dt);
+    if (player.jumpBuffer > 0) player.jumpBuffer -= dt;
+
+    let ax = 0;
+    if (keys.left) ax -= 1;
+    if (keys.right) ax += 1;
+
+    // Прыжок
+    if (player.jumpBuffer > 0) {
+      if (player.onGround || player.coyote > 0) {
+        player.vy = -JUMP_SPEED;
+        player.onGround = false;
+        player.coyote = 0;
+        player.jumpBuffer = 0;
+        spawnParticles(player.x, player.y + player.r, 8, '#8ec5ff');
+      } else if (player.wallDir !== 0) {
+        player.vy = -WALL_JUMP_Y;
+        player.vx = -player.wallDir * WALL_JUMP_X;
+        player.wallDir = 0;
+        player.jumpBuffer = 0;
+        spawnParticles(player.x, player.y, 10, '#ff9ecb');
+      }
+    }
+
+    if (ax !== 0) {
+      player.vx += ax * MOVE_ACCEL * dt;
+      if (Math.abs(player.vx) > MOVE_MAX) player.vx = Math.sign(player.vx) * MOVE_MAX;
+    } else {
+      const fr = player.onGround ? 10 : 1.4;
+      player.vx *= (1 - fr * dt);
+      if (Math.abs(player.vx) < 3) player.vx = 0;
+    }
+
+    player.vy += GRAVITY * dt;
+    if (player.vy > 2200) player.vy = 2200;
+
+    player.x += player.vx * dt;
+    collideX();
+    player.y += player.vy * dt;
+    collideY();
+
+    // Границы экрана
+    if (player.x - player.r < 0) { player.x = player.r; if (player.vx < 0) player.vx = -player.vx * 0.6; }
+    if (player.x + player.r > W) { player.x = W - player.r; if (player.vx > 0) player.vx = -player.vx * 0.6; }
+
+    // ==== ЧЕКПОИНТ: обновляем ТОЛЬКО когда реально стоим на платформе ====
+    if (player.onGround) {
+      // Проверяем, что под нами действительно платформа и мы не на самом её краю
+      let onSafe = false;
+      for (const w of walls) {
+        if (Math.abs(player.y + player.r - w.y) < 3 &&
+            player.x > w.x + 6 && player.x < w.x + w.w - 6) {
+          onSafe = true;
+          break;
+        }
+      }
+      if (onSafe) {
+        checkpoint.x = player.x;
+        checkpoint.y = player.y;
+      }
+    }
+
+    // ==== ПАДЕНИЕ: проверяем по АБСОЛЮТНОЙ Y, не по камере ====
+    // Если игрок ниже старта больше, чем на 1.5 экрана — он точно упал.
+    const fellTooLow = player.y > startY + H + 200;
+    // Дополнительно: если игрок ушёл ниже видимой области камеры сильно
+    const belowCamera = player.y - camY > H * 1.5;
+
+    if (fellTooLow || belowCamera) {
+      fallTimer += dt;
+      if (fallTimer > 0.15) {
+        fallTimer = 0;
+        respawn();
+      }
+    } else {
+      fallTimer = 0;
+    }
+
+    // Шипы
+    for (const s of spikes) {
+      if (circleRect(player.x, player.y, player.r, s.x, s.y, s.w, s.h)) {
+        die();
+        break;
+      }
+    }
+
+    // Догенерация вверх
+    if (player.y - 1600 < highestY) {
+      generateUpTo(player.y - 2400);
+    }
+
+    updateScore();
+
+    // Камера плавно
+    const targetCam = player.y - H * 0.62;
+    camY += (targetCam - camY) * Math.min(1, 6 * dt);
+  }
+
+  function collideX() {
+    player.wallDir = 0;
+    for (const w of walls) {
+      if (w.ground) continue;
+      if (!aabb(player.x - player.r, player.y - player.r, player.r * 2, player.r * 2, w.x, w.y, w.w, w.h)) continue;
+      if (player.vx > 0) {
+        player.x = w.x - player.r;
+        player.wallDir = 1;
+        player.vx = 0;
+      } else if (player.vx < 0) {
+        player.x = w.x + w.w + player.r;
+        player.wallDir = -1;
+        player.vx = 0;
+      }
+    }
+  }
+
+  function collideY() {
+    player.onGround = false;
+    for (const w of walls) {
+      if (!aabb(player.x - player.r, player.y - player.r, player.r * 2, player.r * 2, w.x, w.y, w.w, w.h)) continue;
+      if (player.vy > 0) {
+        player.y = w.y - player.r;
+        player.vy = 0;
+        player.onGround = true;
+      } else if (player.vy < 0) {
+        player.y = w.y + w.h + player.r;
+        player.vy = 0;
+      }
+    }
+  }
+
+  function aabb(x1, y1, w1, h1, x2, y2, w2, h2) {
+    return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2;
+  }
+  function circleRect(cx, cy, r, rx, ry, rw, rh) {
+    const nx = Math.max(rx, Math.min(cx, rx + rw));
+    const ny = Math.max(ry, Math.min(cy, ry + rh));
+    const dx = cx - nx, dy = cy - ny;
+    return dx * dx + dy * dy < r * r;
+  }
+
+  function updateScore() {
+    score = Math.max(score, Math.floor((startY - player.y) / 10));
+    scoreEl.textContent = score;
+  }
+
+  function spawnParticles(x, y, n, color) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 80 + Math.random() * 260;
+      particles.push({
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60,
+        life: 0.5 + Math.random() * 0.4, max: 0.9, color,
+        size: 2 + Math.random() * 4,
+      });
+    }
+  }
+  function updateParticles(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.vy += 900 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+  function updateTrail(dt) {
+    if (dead) return;
+    player.trail.push({ x: player.x, y: player.y, life: 0.3 });
+    if (player.trail.length > 16) player.trail.shift();
+    for (const t of player.trail) t.life -= dt;
+    while (player.trail.length && player.trail[0].life <= 0) player.trail.shift();
+  }
+
+  // ---------- Рендер ----------
+  function draw() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#161a2b');
+    g.addColorStop(1, '#0b0d16');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < 80; i++) {
+      const sx = (i * 137.5) % W;
+      const sy = ((i * 89.7 - camY * 0.25) % H + H) % H;
+      ctx.fillStyle = i % 3 === 0 ? '#8ec5ff' : '#ffffff';
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(0, -camY);
+
+    for (const w of walls) {
+      if (w.y - camY > H + 80 || w.y + w.h - camY < -80) continue;
+      const grad = ctx.createLinearGradient(w.x, w.y, w.x, w.y + w.h);
+      grad.addColorStop(0, w.ground ? '#3b4a6b' : '#4a5c82');
+      grad.addColorStop(1, w.ground ? '#232c40' : '#2c3550');
+      ctx.fillStyle = grad;
+      roundRect(w.x, w.y, w.w, w.h, 8);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.16)';
+      roundRect(w.x + 3, w.y + 3, w.w - 6, 4, 2);
+      ctx.fill();
+    }
+
+    for (const s of spikes) {
+      if (s.y - camY > H + 40 || s.y + s.h - camY < -40) continue;
+      ctx.fillStyle = '#ff4d6d';
+      ctx.beginPath();
+      const count = 3;
+      const step = s.w / count;
+      for (let i = 0; i < count; i++) {
+        const bx = s.x + i * step;
+        if (s.dir === -1) {
+          ctx.moveTo(bx, s.y);
+          ctx.lineTo(bx + step / 2, s.y + s.h);
+          ctx.lineTo(bx + step, s.y);
+        } else {
+          ctx.moveTo(bx, s.y + s.h);
+          ctx.lineTo(bx + step / 2, s.y);
+          ctx.lineTo(bx + step, s.y + s.h);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    for (const t of player.trail) {
+      const a = Math.max(0, t.life / 0.3);
+      ctx.globalAlpha = a * 0.35;
+      ctx.fillStyle = '#8ec5ff';
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, player.r * (0.4 + 0.6 * a), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    drawPlayer();
+
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life / p.max);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+  }
+
+  function drawPlayer() {
+    const { x, y, r } = player;
+    ctx.save();
+    ctx.shadowColor = '#8ec5ff';
+    ctx.shadowBlur = 24;
+    const grad = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, 2, x, y, r);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.5, '#8ec5ff');
+    grad.addColorStop(1, '#4a7bd4');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    const lookX = Math.max(-1, Math.min(1, player.vx / 300));
+    ctx.fillStyle = '#0b0d16';
+    ctx.beginPath();
+    ctx.arc(x - r * 0.32 + lookX * 3, y - r * 0.1, r * 0.16, 0, Math.PI * 2);
+    ctx.arc(x + r * 0.32 + lookX * 3, y - r * 0.1, r * 0.16, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function roundRect(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  resize();
+  initWorld();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
